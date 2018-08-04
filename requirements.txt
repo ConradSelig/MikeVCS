@@ -1,0 +1,2 @@
+pygame==1.9.4
+git+git://github.com/ConradSelig/CSUtils@master
