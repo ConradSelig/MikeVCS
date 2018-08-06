@@ -3,21 +3,41 @@ from UI import ui_manager
 import logging
 
 
+class DisplayState:
+
+    state = type(bool)
+
+    def __init__(self):
+        self.state = True
+
+    def get_state(self):
+        return self.state
+
+    def change_state(self, new_state):
+        logging.exception("A display error has occurred, the display has been closed to prevent program exit.")
+        self.state = new_state
+
+
 def main():
     DisplayQueueManager = ui_manager.QueueHandler()
 
-    DisplayQueueManager.request_connection(["Main"])
-    DisplayQueueManager.request_connection(["AI"])
-    DisplayQueueManager.request_connection(["Database"])
-    DisplayQueueManager.request_connection(["Display"])
-    DisplayQueueManager.request_connection(["Habit"])
-    DisplayQueueManager.request_connection(["Email"])
+    DisplayQueueManager.request_connection(["Main"], {"color": ui_manager.GREEN})
+    DisplayQueueManager.request_connection(["AI"], {"color": ui_manager.GREEN})
+    DisplayQueueManager.request_connection(["Database"], {"color": ui_manager.GREEN})
+    DisplayQueueManager.request_connection(["Display"], {"color": ui_manager.RED})
+    DisplayQueueManager.request_connection(["Habit"], {"color": ui_manager.RED})
+    DisplayQueueManager.request_connection(["Email"], {"color": ui_manager.RED})
 
-    running, show_display = True, True
+    running = True
+    show_display = DisplayState()
     loop_count = 0
     while running:
-        if show_display:
+        if show_display.get_state():
             loop_count = ui_manager.main(DisplayQueueManager, loop_count)
+            if loop_count == "DisplayError":
+                show_display.change_state(False)
+        else:
+            ui_manager.close_display()
     return
 
 
@@ -31,9 +51,10 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
+        print("KeyboardInterrupt")
         exit_protocol()
     except (BaseException, Exception):
         print("\n\n")
-        logging.exception("A Fatal Error has Occured")
+        logging.exception("A Fatal Error has Occurred")
         print("\n\n")
         exit_protocol()
