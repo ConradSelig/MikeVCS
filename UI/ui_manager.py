@@ -1,7 +1,6 @@
 import pygame
 import math
 
-from random import randint
 from CSUtils import Switch
 
 
@@ -26,7 +25,7 @@ class QueueHandler:
     def make_connections(self):
         self.__add_connections()
         # for every connection
-        for connection in sorted(self.connections, key=lambda l:l[2], reverse=True):
+        for connection in sorted(self.connections, key=lambda l: l[2], reverse=True):
             # for each module in that connection
             for module in connection[0]:
                 # give the event index to that module
@@ -112,18 +111,18 @@ class Event:
         except (BaseException, Exception):
             return 1
         if self.public_key in [conn[1] for conn in getattr(QueueHandler, "connections")]:
-            #pygame.draw.ellipse(SCREEN, BLUE, (self.node_loc[0] - 8, self.node_loc[1] - 8, 16, 16), 4)
+            # pygame.draw.ellipse(SCREEN, BLUE, (self.node_loc[0] - 8, self.node_loc[1] - 8, 16, 16), 4)
             direction = 1
             if self.node_loc[1] > Y_CENTER:
                 direction = -1
             ''' body '''
             body = pygame.Rect((self.node_loc[0] - self.width / 4) + self.width / 16,
-                               (Y_CENTER - (Y_CENTER * direction) + (15 * direction)) if direction > 0 else self.node_loc[
-                                   1],
+                               (Y_CENTER - (Y_CENTER * direction) + (15 * direction)) if direction > 0 else
+                               self.node_loc[1],
                                ((self.node_loc[0] + self.width / 4) - self.width / 16) - (
                                            (self.node_loc[0] - self.width / 4) + self.width / 16),
-                               (Y_CENTER - (Y_CENTER - self.node_loc[1]) - 15) if direction > 0 else SIZE[1] -
-                                                                                                     self.node_loc[1] - 15)
+                               (Y_CENTER - (Y_CENTER - self.node_loc[1]) - 15) if direction > 0 else
+                               SIZE[1] - self.node_loc[1] - 15)
             SCREEN.fill(LIGHT_BACK, rect=body)
             ''' bottom line '''
             pygame.draw.line(SCREEN, self.color,
@@ -165,9 +164,6 @@ class Event:
                              8)
         return 0
 
-    def set_data(self):
-        return 0
-
 
 class Node:
     private_key = 0
@@ -185,7 +181,7 @@ class Node:
 class NodeSet:
     nodes = []
     column = 0  # 1 - 3
-    event = 0 # 1 - 6
+    event = 0  # 1 - 6
 
     def __init__(self, nodes):
         self.nodes = nodes
@@ -280,14 +276,14 @@ def setup_display():
     return modules, nodes, events, wheel_center, midpoints
 
 
-def main(QueueHandlerObject, loop_count):
+def main(queue_handler_object, loop_count):
 
-    modules, nodes, events, wheel_center, midpoints = getattr(QueueHandlerObject, "data_fields")
+    modules, nodes, events, wheel_center, midpoints = getattr(queue_handler_object, "data_fields")
     errors = 0
 
     loop_count += 1
     if loop_count == 1:
-        QueueHandlerObject.make_connections()
+        queue_handler_object.make_connections()
     elif loop_count == 100:
         '''# Random generator of event connections
         close_index = randint(1,6)
@@ -309,7 +305,7 @@ def main(QueueHandlerObject, loop_count):
 
     SCREEN.fill(BACKGROUND)
 
-    #draw_guidelines()
+    # draw_guidelines()
 
     display_modules((wheel_center[0] + 2, wheel_center[1] + 2), 12.03, DARK_BLUE)
     display_modules(wheel_center, 12.03, BLUE)
@@ -380,27 +376,20 @@ def connect_nodes(node_set, color, events, vertical_offset_dist):
         if getattr(connection_event, "data"):
             for index in range(len(node_set)):
                 try:
-                    #print(Y_CENTER, getattr(node_set[index], "location"), getattr(node_set[index + 1], "location"))
-                    #print("--" if getattr(node_set[index], "location")[1] < Y_CENTER else "")
-                    #print("##" if getattr(node_set[index + 1], "location")[1] > Y_CENTER else "")
-                    #print(getattr(node_set[index], "location"))
-
                     pygame.draw.line(SCREEN, color,
-                             getattr(node_set[index], "location"), getattr(node_set[index + 1], "location"), 4)
+                                     getattr(node_set[index], "location"), getattr(node_set[index + 1], "location"), 4)
                 except AttributeError:
                     try:
                         if getattr(node_set[index], "location")[1] < Y_CENTER < node_set[index + 1][1]:  # going down
-                            #pygame.draw.ellipse(SCREEN, RED, (getattr(node_set[index], "location")[0] - 8, getattr(node_set[index], "location")[1] - 8, 16, 16), 4)
-
-                            node_set.insert(-1, (getattr(node_set[-2],"location")[0] + 15,
-                                                 Y_CENTER + (Y_CENTER - getattr(node_set[4], "location")[1]) - vertical_offset_dist))
+                            node_set.insert(-1, (getattr(node_set[-2], "location")[0] + 15,
+                                                 Y_CENTER + (Y_CENTER - getattr(node_set[4], "location")[1]) -
+                                                 vertical_offset_dist))
 
                             pygame.draw.line(SCREEN, color, node_set[-2], node_set[-1], 4)
                         elif getattr(node_set[index], "location")[1] > Y_CENTER > node_set[index + 1][1]:  # going up
-                            #pygame.draw.ellipse(SCREEN, RED, (getattr(node_set[index], "location")[0] - 8, getattr(node_set[index], "location")[1] - 8, 16, 16), 4)
-
                             node_set.insert(-1, (getattr(node_set[-2], "location")[0] + 15,
-                                                 Y_CENTER - (getattr(node_set[4], "location")[1] - Y_CENTER) + vertical_offset_dist))
+                                                 Y_CENTER - (getattr(node_set[4], "location")[1] - Y_CENTER) +
+                                                 vertical_offset_dist))
 
                             pygame.draw.line(SCREEN, color, node_set[-2], node_set[-1], 4)
 
@@ -575,9 +564,11 @@ def display_modules(center, rotation, color, calc_midpoints=False):
                     text_rect.right = 150
 
                 if case("Display"):
-                    SCREEN.blit(text, (text_rect[0] + midpoints[-1][1:][0] - (midpoints[-1][1:][0] - x_center) - 10, text_rect[1] + midpoints[-1][1:][1]))
+                    SCREEN.blit(text, (text_rect[0] + midpoints[-1][1:][0] - (midpoints[-1][1:][0] - x_center) - 10,
+                                       text_rect[1] + midpoints[-1][1:][1]))
                 elif case("AI"):
-                    SCREEN.blit(text, (text_rect[0] + midpoints[-1][1:][0] - (midpoints[-1][1:][0] - x_center) - 15, text_rect[1] + midpoints[-1][1:][1] - 20))
+                    SCREEN.blit(text, (text_rect[0] + midpoints[-1][1:][0] - (midpoints[-1][1:][0] - x_center) - 15,
+                                       text_rect[1] + midpoints[-1][1:][1] - 20))
                 elif case("Email"):
                     SCREEN.blit(text, (midpoints[-1][1:][0] + 5, midpoints[-1][1:][1] - 40))
                 elif case("Habit"):
