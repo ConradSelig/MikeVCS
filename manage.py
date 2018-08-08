@@ -21,12 +21,12 @@ class DisplayState:
 def main():
     DisplayQueueManager = ui_manager.QueueHandler()
 
-    DisplayQueueManager.request_connection(["Main"], {"color": ui_manager.GREEN})
-    DisplayQueueManager.request_connection(["AI"], {"color": ui_manager.GREEN})
-    DisplayQueueManager.request_connection(["Database"], {"color": ui_manager.GREEN})
-    DisplayQueueManager.request_connection(["Display"], {"color": ui_manager.RED})
-    DisplayQueueManager.request_connection(["Habit"], {"color": ui_manager.RED})
-    DisplayQueueManager.request_connection(["Email"], {"color": ui_manager.RED})
+    DisplayQueueManager.request_connection(["Main"], {"color": ui_manager.GREEN, "title": "tester_A"})
+    DisplayQueueManager.request_connection(["AI"], {"color": ui_manager.GREEN, "title": "tester_B"})
+    DisplayQueueManager.request_connection(["Database"], {"color": ui_manager.GREEN, "title": "tester_C"})
+    DisplayQueueManager.request_connection(["Display"], {"color": ui_manager.RED, "title": "tester_D"})
+    DisplayQueueManager.request_connection(["Habit"], {"color": ui_manager.RED, "title": "tester_E"})
+    DisplayQueueManager.request_connection(["Email"], {"color": ui_manager.RED, "title": "tester_F"})
 
     running = True
     show_display = DisplayState()

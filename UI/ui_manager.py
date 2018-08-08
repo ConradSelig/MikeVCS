@@ -92,9 +92,12 @@ class Event:
     public_key = 0
     node_loc = (0, 0)
     width = 0
-    color = ()
     column_nodes = []
     data = {}
+
+    # attributes
+    color = ()
+    title = ""
 
     def __init__(self, public_key, node_loc, width):
         self.public_key = public_key
@@ -106,6 +109,10 @@ class Event:
         try:
             if isinstance(self.data["color"], tuple) and len(self.data["color"]) == 3:
                 self.color = self.data["color"]
+            else:
+                return 1
+            if isinstance(self.data["title"], str):
+                self.title = self.data["title"]
             else:
                 return 1
         except (BaseException, Exception):
@@ -162,6 +169,12 @@ class Event:
                              ((self.node_loc[0] + self.width / 4) - self.width / 64,
                               (Y_CENTER - (Y_CENTER * direction) + (15 * direction)) - self.width / 32 * -direction),
                              8)
+            ''' title '''
+            text = TextFont.render(self.title, False, self.color)
+            SCREEN.blit(text, (((self.node_loc[0] - self.width / 4) + self.width / 16 + 15,
+                        Y_CENTER - (Y_CENTER * direction) + (15 * direction) + 15) if direction > 0 else
+                        ((self.node_loc[0] - self.width / 4) + self.width / 16 + 15, self.node_loc[1] + 15)))
+
         return 0
 
 
