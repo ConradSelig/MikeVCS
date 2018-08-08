@@ -31,13 +31,17 @@ def main():
     running = True
     show_display = DisplayState()
     loop_count = 0
+    tick_count = 0
     while running:
+        tick_count += 1
         if show_display.get_state():
             loop_count = ui_manager.main(DisplayQueueManager, loop_count)
             if loop_count == "DisplayError":
                 show_display.change_state(False)
         else:
             ui_manager.close_display()
+        if tick_count >= 1000:
+            DisplayQueueManager.close_connection("tester_C")
     return
 
 

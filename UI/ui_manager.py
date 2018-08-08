@@ -65,9 +65,9 @@ class QueueHandler:
                     modules[index] = 5
         self.queue.append(([module - 1 for module in modules], data))
 
-    def close_connection(self, event_index):
+    def close_connection(self, event_name):
         for connection in self.connections:
-            if connection[1] == event_index:
+            if connection[3]["title"] == event_name:
                 # reset the nodes so the connection is not displayed
                 for module in connection[0]:
                     setattr(self.nodes[module], "event", 0)
