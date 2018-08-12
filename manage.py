@@ -1,6 +1,8 @@
 from UI import ui_manager
 
+import time
 import logging
+import threading
 
 
 class DisplayState:
@@ -14,12 +16,14 @@ class DisplayState:
         return self.state
 
     def change_state(self, new_state):
-        logging.exception("A display error has occurred, the display has been closed to prevent program exit.")
         self.state = new_state
 
 
+DisplayQueueManager = ui_manager.QueueHandler()
+CurrentDisplayState = DisplayState()
+
+
 def main():
-    DisplayQueueManager = ui_manager.QueueHandler()
 
     DisplayQueueManager.request_connection(["Main"], {"color": ui_manager.GREEN, "title": "tester_A"})
     DisplayQueueManager.request_connection(["AI"], {"color": ui_manager.GREEN, "title": "tester_B"})
@@ -29,20 +33,49 @@ def main():
     DisplayQueueManager.request_connection(["Email"], {"color": ui_manager.RED, "title": "tester_F"})
 
     running = True
-    show_display = DisplayState()
-    loop_count = 0
     tick_count = 0
+    display_thread = threading.Thread(target=show_display)
+    display_exit_thread = threading.Thread(target=wait_for_exit)
+    display_thread.start()
+    display_exit_thread.start()
     while running:
         tick_count += 1
-        if show_display.get_state():
-            loop_count = ui_manager.main(DisplayQueueManager, loop_count)
-            if loop_count == "DisplayError":
-                show_display.change_state(False)
-        else:
-            ui_manager.close_display()
-        if tick_count >= 1000:
+        if tick_count >= 500:
             DisplayQueueManager.close_connection("tester_C")
+        time.sleep(0.01)
+        # print(running)
     return
+
+
+def wait_for_exit():
+    input("Display Exit Started")
+    CurrentDisplayState.change_state(False)
+    return
+
+
+def show_display():  # thread
+    running = True
+    loop_count = 0
+    while running:
+        if CurrentDisplayState.get_state():
+            try:
+                loop_count = ui_manager.main(DisplayQueueManager, loop_count)
+            except KeyboardInterrupt:
+                logging.exception("A display error has occurred, the display has been closed to prevent program exit.")
+                time.sleep(0.1)
+                print("Catch ID: 00")
+                return
+            if loop_count == "DisplayError":
+                logging.exception("A display error has occurred, the display has been closed to prevent program exit.")
+                time.sleep(0.1)
+                print("Catch ID: 01")
+                return
+        else:
+            logging.exception("A display error has occurred, the display has been closed to prevent program exit.")
+            time.sleep(0.1)
+            print("Catch ID: 02")
+            return
+        # print(loop_count)
 
 
 def exit_protocol():

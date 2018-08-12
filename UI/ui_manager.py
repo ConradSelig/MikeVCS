@@ -309,11 +309,17 @@ def main(queue_handler_object, loop_count):
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
+            print("AAA")
+            pygame.quit()
             raise KeyboardInterrupt
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_c and pygame.key.get_mods() & pygame.KMOD_CTRL:
+                print("BBB")
+                pygame.quit()
                 raise KeyboardInterrupt
             if event.key == pygame.K_ESCAPE:
+                print("CCC")
+                pygame.quit()
                 raise KeyboardInterrupt
 
     SCREEN.fill(BACKGROUND)
