@@ -25,12 +25,14 @@ CurrentDisplayState = DisplayState()
 
 def main():
 
-    DisplayQueueManager.request_connection(["Main"], {"color": ui_manager.GREEN, "title": "tester_A"})
+    DisplayQueueManager.request_connection(["Main"], {"color": ui_manager.GREEN, "title": "tester_A",
+                                                      "TextBox": ["Hello", "World"]})
     DisplayQueueManager.request_connection(["AI"], {"color": ui_manager.GREEN, "title": "tester_B"})
     DisplayQueueManager.request_connection(["Database"], {"color": ui_manager.GREEN, "title": "tester_C"})
     DisplayQueueManager.request_connection(["Display"], {"color": ui_manager.RED, "title": "tester_D"})
     DisplayQueueManager.request_connection(["Habit"], {"color": ui_manager.RED, "title": "tester_E"})
-    DisplayQueueManager.request_connection(["Email"], {"color": ui_manager.RED, "title": "tester_F"})
+    DisplayQueueManager.request_connection(["Email"], {"color": ui_manager.RED, "title": "tester_F",
+                                                       "TextBox": ["World", "Hello"]})
 
     running = True
     tick_count = 0
@@ -42,6 +44,7 @@ def main():
         tick_count += 1
         if tick_count >= 500:
             DisplayQueueManager.close_connection("tester_C")
+            DisplayQueueManager.update_data("tester_A", {"TextBox": ["Goodbye", "For", "Now"]})
         time.sleep(0.01)
         # print(running)
     return

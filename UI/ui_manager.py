@@ -74,6 +74,15 @@ class QueueHandler:
                     setattr(self.nodes[module], "column", 0)
                 self.connections.remove(connection)
 
+    def update_data(self, event_name, new_dict):
+        for connection in self.connections:
+            if connection[3]["title"] == event_name:
+                try:
+                    for key in new_dict:
+                        connection[3][key] = new_dict[key]
+                except KeyError:
+                    return 1
+
 
 class Module:
     name = ""
@@ -106,6 +115,11 @@ class Event:
         self.referenced = False
 
     def draw(self):
+
+        direction = 1
+        if self.node_loc[1] > Y_CENTER:
+            direction = -1
+
         try:
             if isinstance(self.data["color"], tuple) and len(self.data["color"]) == 3:
                 self.color = self.data["color"]
@@ -117,11 +131,9 @@ class Event:
                 return 1
         except (BaseException, Exception):
             return 1
+
         if self.public_key in [conn[1] for conn in getattr(QueueHandler, "connections")]:
             # pygame.draw.ellipse(SCREEN, BLUE, (self.node_loc[0] - 8, self.node_loc[1] - 8, 16, 16), 4)
-            direction = 1
-            if self.node_loc[1] > Y_CENTER:
-                direction = -1
             ''' body '''
             body = pygame.Rect((self.node_loc[0] - self.width / 4) + self.width / 16,
                                (Y_CENTER - (Y_CENTER * direction) + (15 * direction)) if direction > 0 else
@@ -175,6 +187,17 @@ class Event:
                         Y_CENTER - (Y_CENTER * direction) + (15 * direction) + 15) if direction > 0 else
                         ((self.node_loc[0] - self.width / 4) + self.width / 16 + 15, self.node_loc[1] + 15)))
 
+            ''' Text Box '''
+            try:
+                for row, line_text in enumerate(self.data["TextBox"]):
+                    text = TextFont.render(line_text, False, self.color)
+                    SCREEN.blit(text, (((self.node_loc[0] - self.width / 4) + self.width / 16 + 15,
+                                        Y_CENTER - (Y_CENTER * direction) + (15 * direction) + 45 + (row * 20))
+                                       if direction > 0 else
+                                       ((self.node_loc[0] - self.width / 4) + self.width / 16 + 15,
+                                        self.node_loc[1] + 45 + (row * 20))))
+            except KeyError:
+                pass
         return 0
 
 
@@ -298,13 +321,6 @@ def main(queue_handler_object, loop_count):
     if loop_count == 1:
         queue_handler_object.make_connections()
     elif loop_count == 100:
-        '''# Random generator of event connections
-        close_index = randint(1,6)
-        Queue.close_connection(close_index)
-        new_connections = list(set([randint(1,6) for i in range(randint(1,2))]))
-        if new_connections != [] and randint(0,1) == 0:
-            Queue.request_connection(new_connections)
-        '''
         loop_count = 0
 
     for event in pygame.event.get():
