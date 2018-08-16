@@ -1,3 +1,4 @@
+import datetime
 import pygame
 import math
 
@@ -131,6 +132,12 @@ class Event:
                 return 1
         except (BaseException, Exception):
             return 1
+
+        try:
+            if self.data["lifespan"][0] + datetime.timedelta(seconds = self.data["lifespan"][1]) < datetime.datetime.now():
+                return
+        except KeyError:
+            pass
 
         if self.public_key in [conn[1] for conn in getattr(QueueHandler, "connections")]:
             # pygame.draw.ellipse(SCREEN, BLUE, (self.node_loc[0] - 8, self.node_loc[1] - 8, 16, 16), 4)
@@ -359,7 +366,10 @@ def main(queue_handler_object, loop_count):
 
     for event in events:
         if getattr(event, "data"):
-            errors += event.draw()
+            try:
+                errors += event.draw()
+            except TypeError:
+                queue_handler_object.close_connection(getattr(event, "data")["title"])
 
     pygame.display.flip()
 
