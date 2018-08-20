@@ -3,40 +3,26 @@ import email
 import time
 
 
-'''
-    Function Writer: Conrad Selig
-    Date: 07/08/2018
-    Parameters: None
-    Inputs: None
-    Returns: List of un-read emails
-'''
 def get_email_stack():
 
-    #insansiating the list that will store the un-read emails
+    # instantiating the list that will store the un-read emails
     received = []
 
-    #loops until broken
+    # loops until broken
     while True:
-        #appending the next email using the _get_email_stack() function
+        # appending the next email using the _get_email_stack() function
         received.append(_get_next_email())
-        #check if the last email == None or 1 (indicating end of unread emails
+        # check if the last email == None or 1 (indicating end of unread emails
         if received[-1] is None or received[-1] == 1:
-            #delete that last element
+            # delete that last element
             del received[-1]
-            #return the list of emails
+            # return the list of emails
             return received
 
 
-'''
-    Function Writer: Conrad Selig
-    Date: 07/08/2018
-    Parameters: None
-    Inputs: Google Calendar API (using imaplib)
-    Returns: Most recent un-read email
-'''
 def _get_next_email():
 
-    received = []  # addr, name, subject, body
+    received = []  # address, name, subject, body
 
     # try surrounds until end of function, this is just a safety precaution to make sure
     # connections to servers to do cause errors when user stops program in the middle of
@@ -47,11 +33,11 @@ def _get_next_email():
             try:
                 mail = imaplib.IMAP4_SSL("imap.gmail.com")
                 break
-            except Exception:
+            except (BaseException, Exception):
                 time.sleep(10)
                 print("ERR (1)", end=" ")
                 continue
-        #if it can't connect, return nothing (no new messages)
+        # if it can't connect, return nothing (no new messages)
         else:
             return 1
 
@@ -60,39 +46,39 @@ def _get_next_email():
             try:
                 mail.login("mike.adam.simon@gmail.com", "8R.wreyK_+t?AL9z")
                 break
-            except Exception:
+            except (BaseException, Exception):
                 time.sleep(10)
                 print("ERR (2)", end=" ")
                 continue
-        #if it can't connect, return nothing (no new messages)
+        # if it can't connect, return nothing (no new messages)
         else:
             return 1
 
-        #getting emails from mailbox, try except for server errors. If error, try again every 10 seconds for 5 minutes
+        # getting emails from mailbox, try except for server errors. If error, try again every 10 seconds for 5 minutes
         for i in range(30):
             try:
                 mail.list()
                 mail.select("inbox")
                 break
-            except Exception:
+            except (BaseException, Exception):
                 time.sleep(10)
                 print("ERR (3)", end=" ")
                 continue
-        #if it can't connect, return nothing (no new messages)
+        # if it can't connect, return nothing (no new messages)
         else:
             return 1
 
         # accounting for server errors, check every 10 seconds for 5 minutes
         for i in range(30):
             try:
-                #retrive all unseen messages
+                # retrive all unseen messages
                 result, data = mail.uid('search', None, "UNSEEN")  # search and return uids
                 break
-            except Exception:
+            except (BaseException, Exception):
                 time.sleep(10)
                 print("ERR (4)", end=" ")
                 continue
-        #if it can't connect, return nothing (no new messages)
+        # if it can't connect, return nothing (no new messages)
         else:
             return 1
 
@@ -110,9 +96,9 @@ def _get_next_email():
             # turns raw_email into a usable data type
             email_message = email.message_from_bytes(raw_email)
 
-            #todo: add message attachment saving
+            # todo: add message attachment saving
 
-            #build received array, this will later turn into reply_data
+            # build received array, this will later turn into reply_data
             received.append(email.utils.parseaddr(email_message["From"])[1])
             received.append(email.utils.parseaddr(email_message["From"])[0].split(" "))
             received.append(str(email.header.decode_header(email_message['Subject'])[0])[2:-8])
@@ -136,7 +122,7 @@ def _get_next_email():
         else:
             return None
 
-    #this is so that a nasty stack trace does not pop up if this function is cut shorts by program end
+    # this is so that a nasty stack trace does not pop up if this function is cut shorts by program end
     except KeyboardInterrupt:
         print("Keyboard Interrupt, program ending")
         exit()
