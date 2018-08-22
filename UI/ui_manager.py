@@ -1,6 +1,9 @@
-import datetime
+import datetime as dt
+import logging
 import pygame
 import math
+import time
+import os
 
 from CSUtils import Switch
 
@@ -81,6 +84,7 @@ class QueueHandler:
                 try:
                     for key in new_dict:
                         connection[3][key] = new_dict[key]
+                    connection[3]["connection_time"] = dt.datetime.now()
                 except KeyError:
                     return 1
 
@@ -102,7 +106,6 @@ class Event:
     public_key = 0
     node_loc = (0, 0)
     width = 0
-    column_nodes = []
     data = {}
 
     # attributes
@@ -133,14 +136,26 @@ class Event:
         except (BaseException, Exception):
             return 1
 
+        # check if there is a notset attached to this event
+        for node_set in DisplayQueueManager.nodes:
+            # if there is...
+            if getattr(node_set, "event") == self.public_key:
+                # test to see if there is a connection_time data index
+                try:
+                    self.data["connection_time"]
+                # if there is not, set the connection_time to now
+                except KeyError:
+                    self.data["connection_time"] = dt.datetime.now()
+
+        # try to see if the lifespan of the event has completed
         try:
-            if self.data["lifespan"][0] + datetime.timedelta(seconds = self.data["lifespan"][1]) < datetime.datetime.now():
-                return
+            if self.data["connection_time"] + dt.timedelta(seconds=self.data["lifespan"]) < dt.datetime.now():
+                # if it has, raise a TypeError so the event is closed
+                raise TypeError
         except KeyError:
             pass
 
         if self.public_key in [conn[1] for conn in getattr(QueueHandler, "connections")]:
-            # pygame.draw.ellipse(SCREEN, BLUE, (self.node_loc[0] - 8, self.node_loc[1] - 8, 16, 16), 4)
             ''' body '''
             body = pygame.Rect((self.node_loc[0] - self.width / 4) + self.width / 16,
                                (Y_CENTER - (Y_CENTER * direction) + (15 * direction)) if direction > 0 else
@@ -246,7 +261,11 @@ GREEN = (17, 180, 147)
 RED = (194, 68, 78)
 BLUE = (56, 165, 205)
 DARK_BLUE = (33, 102, 127)
+YELLOW = (232, 229, 48)
 
+# set the starting position of the window.
+# Thank you to https://stackoverflow.com/users/142637/sloth for the borderless window code
+os.environ['SDL_VIDEO_WINDOW_POS'] = "0,0"
 pygame.init()
 pygame.font.init()
 
@@ -255,7 +274,8 @@ SIZE = (infoObject.current_w, infoObject.current_h)
 X_CENTER = SIZE[0]/2
 Y_CENTER = SIZE[1]/2
 
-SCREEN = pygame.display.set_mode(SIZE, pygame.FULLSCREEN)
+# create a borderless window that's as big as the entire screen
+SCREEN = pygame.display.set_mode((SIZE[0], SIZE[1]), pygame.NOFRAME)
 clock = pygame.time.Clock()
 
 TextFont = pygame.font.SysFont('Courant', 30)
@@ -319,63 +339,72 @@ def setup_display():
     return modules, nodes, events, wheel_center, midpoints
 
 
-def main(queue_handler_object, loop_count):
+def main(display_state_object):
 
-    modules, nodes, events, wheel_center, midpoints = getattr(queue_handler_object, "data_fields")
+    modules, nodes, events, wheel_center, midpoints = getattr(DisplayQueueManager, "data_fields")
     errors = 0
+    loop_count = 0
 
-    loop_count += 1
-    if loop_count == 1:
-        queue_handler_object.make_connections()
-    elif loop_count == 100:
-        loop_count = 0
+    running = True
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            print("AAA")
-            pygame.quit()
-            raise KeyboardInterrupt
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_c and pygame.key.get_mods() & pygame.KMOD_CTRL:
-                print("BBB")
-                pygame.quit()
-                raise KeyboardInterrupt
-            if event.key == pygame.K_ESCAPE:
-                print("CCC")
-                pygame.quit()
-                raise KeyboardInterrupt
+    while running:
+        if display_state_object.get_state():
 
-    SCREEN.fill(BACKGROUND)
+            loop_count += 1
+            if loop_count == 1:
+                DisplayQueueManager.make_connections()
+            elif loop_count == 100:
+                loop_count = 0
 
-    # draw_guidelines()
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    print("AAA")
+                    pygame.quit()
+                    raise KeyboardInterrupt
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_c and pygame.key.get_mods() & pygame.KMOD_CTRL:
+                        print("BBB")
+                        pygame.quit()
+                        raise KeyboardInterrupt
+                    if event.key == pygame.K_ESCAPE:
+                        print("CCC")
+                        pygame.quit()
+                        raise KeyboardInterrupt
 
-    display_modules((wheel_center[0] + 2, wheel_center[1] + 2), 12.03, DARK_BLUE)
-    display_modules(wheel_center, 12.03, BLUE)
+            SCREEN.fill(BACKGROUND)
 
-    vertical_offset_dist = (getattr(nodes[1][4], "location")[1] - getattr(nodes[0][4], "location")[1]) / 2
-    for index, node_set in enumerate(nodes):
-        connect_nodes(node_set, BLUE, events, vertical_offset_dist)
+            # draw_guidelines()
 
-    ''' Draw every node in module node sets
-    for node_set in nodes:
-        for node in getattr(node_set, "all nodes"):
-                pygame.draw.ellipse(SCREEN, RED,
-                                    (getattr(node, "location")[0] - 8, getattr(node, "location")[1] - 8,
-                                    16, 16), 4)
-    '''
+            display_modules((wheel_center[0] + 2, wheel_center[1] + 2), 12.03, DARK_BLUE)
+            display_modules(wheel_center, 12.03, BLUE)
 
-    for event in events:
-        if getattr(event, "data"):
-            try:
-                errors += event.draw()
-            except TypeError:
-                queue_handler_object.close_connection(getattr(event, "data")["title"])
+            vertical_offset_dist = (getattr(nodes[1][4], "location")[1] - getattr(nodes[0][4], "location")[1]) / 2
+            for index, node_set in enumerate(nodes):
+                connect_nodes(node_set, BLUE, events, vertical_offset_dist)
 
-    pygame.display.flip()
+            ''' Draw every node in module node sets
+            for node_set in nodes:
+                for node in getattr(node_set, "all nodes"):
+                        pygame.draw.ellipse(SCREEN, RED,
+                                            (getattr(node, "location")[0] - 8, getattr(node, "location")[1] - 8,
+                                            16, 16), 4)
+            '''
 
-    if errors == 0:
-        return loop_count
-    return "DisplayError"
+            for event in events:
+                if getattr(event, "data"):
+                    try:
+                        errors += event.draw()
+                    except TypeError:
+                        DisplayQueueManager.close_connection(getattr(event, "data")["title"])
+
+            pygame.display.flip()
+
+            if errors != 0:
+                logging.exception("A display error has occurred, the display has been closed to prevent program exit.")
+                time.sleep(0.1)
+                return "DisplayError"
+        else:
+            return 1
 
 
 def close_display():
@@ -631,3 +660,7 @@ def display_modules(center, rotation, color, calc_midpoints=False):
     if calc_midpoints:
         return midpoints
     return
+
+
+# this global is at the bottom so that it is the last thing compiled by the initial import statement.
+DisplayQueueManager = QueueHandler()

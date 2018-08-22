@@ -1,9 +1,14 @@
+from UI import ui_manager as ui
+
+import datetime
 import imaplib
 import email
 import time
 
 
 def get_email_stack():
+
+    print("Getting email stack")
 
     # instantiating the list that will store the un-read emails
     received = []
@@ -85,6 +90,12 @@ def _get_next_email():
         # due to uid search, if no new emails found, will return empty byte array
         if data != [b'']:
 
+            print("Adding Incoming Email Event")
+            ui.DisplayQueueManager.request_connection(["Email"], {"color": ui.YELLOW,
+                                                                  "title": "Incoming Email",
+                                                                  "TextBox": ["New Email Detected.",
+                                                                              "Parsing Message..."]})
+
             # get email ID
             latest_email_uid = data[0].split()[-1]
 
@@ -116,6 +127,15 @@ def _get_next_email():
             # not multipart - i.e. plain text, no attachments, keeping fingers crossed
             else:
                 received.append(email_message.get_payload(decode=True))
+
+            time.sleep(2)
+
+            ui.DisplayQueueManager.update_data("Incoming Email", {"color": ui.GREEN,
+                                                                  "TextBox": ["New Email Detected.",
+                                                                              "Parsing Message...",
+                                                                              "",
+                                                                              "Message Parsed."],
+                                                                  "lifespan": 2})
 
             return received
 
