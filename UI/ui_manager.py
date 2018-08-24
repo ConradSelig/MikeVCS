@@ -61,7 +61,7 @@ class QueueHandler:
                     modules[index] = 4
                 elif case("Email"):
                     modules[index] = 6
-                elif case("Habit"):
+                elif case("Schedule"):
                     modules[index] = 1
                 elif case("Main"):
                     modules[index] = 2
@@ -289,7 +289,7 @@ def setup_display():
     wheel_center = (SIZE[0] / 7, Y_CENTER)
 
     for index, module_name in enumerate(["Global Manager", "Email Connection", "Database Management",
-                                         "Schedule Management", "Habit Tracker", "AI Elements"]):
+                                         "Schedule Management", "Schedule Management", "AI Elements"]):
         modules.append(Module(module_name, index))
 
     for mod_index in range(len(modules)):
@@ -570,7 +570,7 @@ def display_modules(center, rotation, color, calc_midpoints=False):
     x_center = center[0]
     y_center = center[1]
 
-    module_names = ["Main", "Display", "AI", "Database", "Email", "Habit"]
+    module_names = ["Main", "Display", "AI", "Database", "Email", "Schedule"]
 
     midpoints = []
 
@@ -616,7 +616,7 @@ def display_modules(center, rotation, color, calc_midpoints=False):
             with Switch(name) as case:
                 if case("Main") or case("Database"):
                     text = pygame.transform.rotate(text, 0)
-                elif case("AI") or case("Habit"):
+                elif case("AI") or case("Schedule"):
                     text = pygame.transform.rotate(text, -30)
                     text_rect = text.get_rect()
                     text_rect.right = 150
@@ -633,7 +633,7 @@ def display_modules(center, rotation, color, calc_midpoints=False):
                                        text_rect[1] + midpoints[-1][1:][1] - 20))
                 elif case("Email"):
                     SCREEN.blit(text, (midpoints[-1][1:][0] + 5, midpoints[-1][1:][1] - 40))
-                elif case("Habit"):
+                elif case("Schedule"):
                     SCREEN.blit(text, (midpoints[-1][1:][0] + 5, midpoints[-1][1:][1]))
                 elif case("Main"):
                     SCREEN.blit(text, (x_center - 22, y_center - 150))

@@ -138,7 +138,7 @@ def _get_next_email():
                                                                               received[0],
                                                                               "",
                                                                               "Parsing Successful."],
-                                                                  "lifespan": 2})
+                                                                  "lifespan": 3})
 
             return received
 

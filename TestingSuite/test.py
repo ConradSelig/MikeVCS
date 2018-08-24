@@ -8,8 +8,4 @@ def test_display():
                                                          "TextBox": ["Line A", "Line B", "Line C", "Lifespan = 3"],
                                                          "lifespan": 3})
 
-    ui.DisplayQueueManager.request_connection(["Main"], {"color": ui.YELLOW, "title": "Display Test 2",
-                                                         "TextBox": ["Line A", "Line B", "Line C", "Lifespan = 5"],
-                                                         "lifespan": 5})
-
     return 0

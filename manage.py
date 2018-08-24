@@ -1,6 +1,7 @@
 from UI import ui_manager as ui
 from TestingSuite import test
 from EmailManager import email_manager
+from ScheduleManager import schedule_manager
 
 import time
 import logging
@@ -34,6 +35,7 @@ def setup():
 def main():
 
     test.test_display()
+    schedule_manager.build_events()
 
     running = True
     tick_count = 0
