@@ -76,7 +76,7 @@ def _get_next_email():
         # accounting for server errors, check every 10 seconds for 5 minutes
         for i in range(30):
             try:
-                # retrive all unseen messages
+                # retrieve all unseen messages
                 result, data = mail.uid('search', None, "UNSEEN")  # search and return uids
                 break
             except (BaseException, Exception):
@@ -134,7 +134,10 @@ def _get_next_email():
                                                                   "TextBox": ["New Email Detected.",
                                                                               "Parsing Message...",
                                                                               "",
-                                                                              "Message Parsed."],
+                                                                              "Message Received From:",
+                                                                              received[0],
+                                                                              "",
+                                                                              "Parsing Successful."],
                                                                   "lifespan": 2})
 
             return received

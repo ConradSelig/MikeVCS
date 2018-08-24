@@ -348,6 +348,9 @@ def main(display_state_object):
     running = True
 
     while running:
+
+        pygame.event.pump()
+
         if display_state_object.get_state():
 
             loop_count += 1
@@ -355,21 +358,6 @@ def main(display_state_object):
                 DisplayQueueManager.make_connections()
             elif loop_count == 100:
                 loop_count = 0
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    print("AAA")
-                    pygame.quit()
-                    raise KeyboardInterrupt
-                elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_c and pygame.key.get_mods() & pygame.KMOD_CTRL:
-                        print("BBB")
-                        pygame.quit()
-                        raise KeyboardInterrupt
-                    if event.key == pygame.K_ESCAPE:
-                        print("CCC")
-                        pygame.quit()
-                        raise KeyboardInterrupt
 
             SCREEN.fill(BACKGROUND)
 

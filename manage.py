@@ -25,16 +25,19 @@ class DisplayState:
 CurrentDisplayState = DisplayState()
 
 
+def setup():
+    main_loop = threading.Thread(target=main).start()
+    display_exit_thread = threading.Thread(target=wait_for_exit).start()
+    ui.main(DisplayState())
+
+
 def main():
 
     test.test_display()
 
     running = True
     tick_count = 0
-    display_thread = threading.Thread(target=show_display)
-    display_exit_thread = threading.Thread(target=wait_for_exit)
-    display_thread.start()
-    display_exit_thread.start()
+
     while running:
         tick_count += 1
         time.sleep(0.01)
@@ -51,10 +54,6 @@ def wait_for_exit():
     return
 
 
-def show_display():  # thread
-    ui.main(CurrentDisplayState)
-
-
 def exit_protocol():
     print("Closing")
     ui.close_display()
@@ -63,7 +62,7 @@ def exit_protocol():
 
 if __name__ == "__main__":
     try:
-        main()
+        setup()
     except KeyboardInterrupt:
         print("KeyboardInterrupt")
         exit_protocol()
