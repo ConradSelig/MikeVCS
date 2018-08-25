@@ -60,6 +60,13 @@ def build_events():
         except (Exception, BaseException):
             continue
 
+    for i in range(len(all_events)):
+        all_events[i] = all_events[i].split("&&")
+        all_events[i][-1] = all_events[i][-1].rstrip()
+        all_events[i][0] = all_events[i][0].split("-")
+        all_events[i][0][0], all_events[i][0][1], all_events[i][0][2] = all_events[i][0][1], all_events[i][0][2], \
+                                                                        all_events[i][0][0]
+
     ui.DisplayQueueManager.update_data("Building Calendar", {"color": ui.GREEN,
                                                              "lifespan": 3,
                                                              "TextBox": ["Getting Credentials",

@@ -80,13 +80,17 @@ class QueueHandler:
 
     def update_data(self, event_name, new_dict):
         for connection in self.connections:
+            print("1: " + connection[3]["title"])
+            print("2: " + event_name)
             if connection[3]["title"] == event_name:
+                print("Event Found")
                 try:
                     for key in new_dict:
                         connection[3][key] = new_dict[key]
                     connection[3]["connection_time"] = dt.datetime.now()
                 except KeyError:
-                    return 1
+                    raise KeyError
+                break
 
 
 class Module:
@@ -370,13 +374,13 @@ def main(display_state_object):
             for index, node_set in enumerate(nodes):
                 connect_nodes(node_set, BLUE, events, vertical_offset_dist)
 
-            ''' Draw every node in module node sets
+            # Draw every node in module node sets
             for node_set in nodes:
                 for node in getattr(node_set, "all nodes"):
                         pygame.draw.ellipse(SCREEN, RED,
                                             (getattr(node, "location")[0] - 8, getattr(node, "location")[1] - 8,
                                             16, 16), 4)
-            '''
+
 
             for event in events:
                 if getattr(event, "data"):
