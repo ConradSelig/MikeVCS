@@ -8,6 +8,7 @@ import os
 from CSUtils import Switch
 
 
+# The interface for the rest of the program, its where connections are requested, changed, and closed.
 class QueueHandler:
     data_fields = []  # modules, nodes, events, wheel_center, midpoints
     connections = []  # list of tuples; ([modules], event, priority, event_data)
@@ -17,15 +18,19 @@ class QueueHandler:
     nodes = []
     events = []
 
+    # The events don't move, they are just changed. This means they are always in the same column
     columns = [1, 2, 3, 1, 2, 3]
+    # increasing number, makes sure events requested earlier are connected first
     next_priority = 0
 
+    # setup the data
     def __init__(self):
         self.data_fields = list(setup_display())
         self.modules = self.data_fields[0]
         self.nodes = self.data_fields[1]
         self.events = self.data_fields[2]
 
+    # called by main, checks for connections that can be made and sets to relating attributes.
     def make_connections(self):
         self.__add_connections()
         # for every connection
@@ -39,21 +44,33 @@ class QueueHandler:
                 # send the data from the request over to the event for display
                 setattr(self.events[connection[1] - 1], "data", connection[3])
 
+    # private function, looks for unconnected requests that can be connected and adds them to connetions[]
     def __add_connections(self):
+        # for each request in the connections queue
         for request in self.queue:
+            # collect all the connected_events indexes for checking
             try:
                 connected_events = [[conn[1] - 1 for conn in self.connections]][0]
+            # catches if there are no connected events
             except IndexError:
                 connected_events = []
+            # for each possible event
             for event_index in range(6):
+                # if that event does not already have a connected module
                 if event_index not in connected_events:
+                    # add that event to the connections
                     self.connections.append((request[0], event_index + 1, self.next_priority, request[1]))
+                    # remove the connection from the queue
                     self.queue.remove(request)
+                    # iterate the priority
                     self.next_priority += 1
                     return
 
+    # adds a possible connection to the requests queue
     def request_connection(self, modules, data):
+        # for each module
         for index, module in enumerate(modules):
+            # change module names to the corresponding index
             with Switch(module) as case:
                 if case("Display"):
                     modules[index] = 3
@@ -67,54 +84,85 @@ class QueueHandler:
                     modules[index] = 2
                 elif case("Database"):
                     modules[index] = 5
+        # add the module index and its data to the connections queue
         self.queue.append(([module - 1 for module in modules], data))
 
-    def close_connection(self, event_name):
+    # close a connection given the event name
+    def close_connection(self, event_name, unique_id=""):
+        # check over existing connection
         for connection in self.connections:
+            # if connection event title matches given name
             if connection[3]["title"] == event_name:
+                if unique_id != "":
+                    try:
+                        if connection[3]["unique_id"] != unique_id:
+                            return
+                    except KeyError:
+                        pass
                 # reset the nodes so the connection is not displayed
                 for module in connection[0]:
                     setattr(self.nodes[module], "event", 0)
                     setattr(self.nodes[module], "column", 0)
+                # remove the connection from the existing connections list (this also deletes all the tracked event data)
                 self.connections.remove(connection)
 
-    def update_data(self, event_name, new_dict):
+    # update the data of an event given the event name and any new or changed data
+    def update_data(self, event_name, new_dict, unique_id=""):
+        # for every existing connection
         for connection in self.connections:
-            print("1: " + connection[3]["title"])
-            print("2: " + event_name)
+            # if connection event title matches given name
             if connection[3]["title"] == event_name:
-                print("Event Found")
+                if unique_id != "":
+                    try:
+                        if connection[3]["unique_id"] != unique_id:
+                            return
+                    except KeyError:
+                        pass
                 try:
+                    # for each item in the new/updated data
                     for key in new_dict:
+                        # changed that data
                         connection[3][key] = new_dict[key]
+                    # reset the connection time, this will only change how long the event is displayed if lifespan is edited.
                     connection[3]["connection_time"] = dt.datetime.now()
+                # only catches if bad dictionary data is given.
                 except KeyError:
-                    raise KeyError
-                break
+                    return 1
 
 
+# One of 6 modules (Main, Email, AI, Database, Habit, Display)
 class Module:
+    # the name of the module
     name = ""
-    public_key = ""
+    # the public key - is also the index of the module in almost every list
+    public_key = 0
+    # only shared with an event that is being connected to this module
     event_private_key = 0
 
     def __init__(self, name, public_key):
         self.name = name
         self.public_key = public_key
 
+    # used for debugging, prints out the module name and index.
     def __str__(self):
         return str(self.public_key) + ": " + str(self.name)
 
 
+# One of 6 customizable events
 class Event:
+    # the public key - is also the index of the event in almost every list
     public_key = 0
+    # the location of the final node that connects the event
     node_loc = (0, 0)
+    # the width of the event, height is set every time the event is draw.
     width = 0
+    # the data the event needs to display
     data = {}
 
-    # attributes
+    # required attributes collected from the data dictionary
     color = ()
     title = ""
+    unique_id = ""
 
     def __init__(self, public_key, node_loc, width):
         self.public_key = public_key
@@ -122,12 +170,15 @@ class Event:
         self.width = width
         self.referenced = False
 
+    # called as part of the main loop - displays the event
     def draw(self):
 
+        # 1 = up, -1 = down (from the connecting node)
         direction = 1
         if self.node_loc[1] > Y_CENTER:
             direction = -1
 
+        # try to build the required attributes into the attributes from the dictionary
         try:
             if isinstance(self.data["color"], tuple) and len(self.data["color"]) == 3:
                 self.color = self.data["color"]
@@ -159,6 +210,13 @@ class Event:
         except KeyError:
             pass
 
+        # try to get a unique_id, this is only used for events that may need duplicate titles
+        try:
+            self.unique_id = self.data["unique_id"]
+        except KeyError:
+            pass
+
+        # if this event is in the QueueHandler's connections list, draw it
         if self.public_key in [conn[1] for conn in getattr(QueueHandler, "connections")]:
             ''' body '''
             body = pygame.Rect((self.node_loc[0] - self.width / 4) + self.width / 16,
@@ -227,20 +285,27 @@ class Event:
         return 0
 
 
+# Individual nodes used for connecting modules to events
 class Node:
+    # private key, only used for placement
     private_key = 0
+    # its place in its nodeset path
     path_index = 0
+    # its (x,y) location
     location = (0, 0)
 
     def __init__(self, private_key, path_index):
         self.private_key = private_key
         self.path_index = path_index
 
+    # prints the node for debugging
     def __str__(self):
         return str(self.private_key) + ": " + str(self.path_index) + ". " + str(self.location)
 
 
+# A set of Nodes for easy interfacing.
 class NodeSet:
+    # list of node objects in this set
     nodes = []
     column = 0  # 1 - 3
     event = 0  # 1 - 6
@@ -259,6 +324,7 @@ class NodeSet:
         return self.nodes[index]
 
 
+# All of the color constants used by the display.
 BACKGROUND = (9, 17, 27)
 LIGHT_BACK = (16, 28, 43)
 GREEN = (17, 180, 147)
@@ -273,6 +339,7 @@ os.environ['SDL_VIDEO_WINDOW_POS'] = "0,0"
 pygame.init()
 pygame.font.init()
 
+# Window size variables
 infoObject = pygame.display.Info()
 SIZE = (infoObject.current_w, infoObject.current_h)
 X_CENTER = SIZE[0]/2
@@ -282,9 +349,11 @@ Y_CENTER = SIZE[1]/2
 SCREEN = pygame.display.set_mode((SIZE[0], SIZE[1]), pygame.NOFRAME)
 clock = pygame.time.Clock()
 
+# The font for the display
 TextFont = pygame.font.SysFont('Courant', 30)
 
 
+# Run once, sets the location for a the modules, nodes, and events
 def setup_display():
     modules = []
     nodes = []
@@ -343,6 +412,7 @@ def setup_display():
     return modules, nodes, events, wheel_center, midpoints
 
 
+# The main loop, keeps the display running
 def main(display_state_object):
 
     modules, nodes, events, wheel_center, midpoints = getattr(DisplayQueueManager, "data_fields")
@@ -374,20 +444,23 @@ def main(display_state_object):
             for index, node_set in enumerate(nodes):
                 connect_nodes(node_set, BLUE, events, vertical_offset_dist)
 
-            # Draw every node in module node sets
+            ''' Draw every node in module node sets
             for node_set in nodes:
                 for node in getattr(node_set, "all nodes"):
                         pygame.draw.ellipse(SCREEN, RED,
                                             (getattr(node, "location")[0] - 8, getattr(node, "location")[1] - 8,
                                             16, 16), 4)
-
+            '''
 
             for event in events:
                 if getattr(event, "data"):
                     try:
                         errors += event.draw()
                     except TypeError:
-                        DisplayQueueManager.close_connection(getattr(event, "data")["title"])
+                        try:
+                            DisplayQueueManager.close_connection(getattr(event, "data")["title"], unique_id=getattr(event, "data")["unique_id"])
+                        except KeyError:
+                            DisplayQueueManager.close_connection(getattr(event, "data")["title"])
 
             pygame.display.flip()
 
@@ -399,10 +472,12 @@ def main(display_state_object):
             return 1
 
 
+# Closing the display, in its own function so that manager.py can call it
 def close_display():
     pygame.quit()
 
 
+# A function for drawing sections on the screen, only used for debugging
 def draw_guidelines():
     """ placeholder """
     ''' horizontal lines '''
@@ -428,6 +503,7 @@ def draw_guidelines():
                      4)  # left 2/3s second third
 
 
+# given a nodeset and a color, connection modules to the corresponding event
 def connect_nodes(node_set, color, events, vertical_offset_dist):
     if getattr(node_set, "column") != 0:
         connection_event = getattr(node_set, "event")
@@ -469,6 +545,7 @@ def connect_nodes(node_set, color, events, vertical_offset_dist):
             return node_set
 
 
+# Places down all of the nodes based on the window size
 def setup_nodes(modules, nodes, midpoints, wheel_center):
     for index, module in enumerate(modules):
         module_nodes = getattr(nodes[index], "nodes")
@@ -570,6 +647,7 @@ def setup_nodes(modules, nodes, midpoints, wheel_center):
                         setattr(node, "location", (wheel_center[0] + 250, Y_CENTER - index_distance * 2))  # 2
 
 
+# draw the modules, calc_midpoints is only ever set to True in one call
 def display_modules(center, rotation, color, calc_midpoints=False):
     x_center = center[0]
     y_center = center[1]
@@ -654,5 +732,5 @@ def display_modules(center, rotation, color, calc_midpoints=False):
     return
 
 
-# this global is at the bottom so that it is the last thing compiled by the initial import statement.
+# This global is at the bottom so that it is the last thing compiled by the initial import statement.
 DisplayQueueManager = QueueHandler()

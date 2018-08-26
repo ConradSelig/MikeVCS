@@ -91,10 +91,12 @@ def _get_next_email():
         if data != [b'']:
 
             print("Adding Incoming Email Event")
+            this_id = str(datetime.datetime.now())
             ui.DisplayQueueManager.request_connection(["Email"], {"color": ui.YELLOW,
                                                                   "title": "Incoming Email",
                                                                   "TextBox": ["New Email Detected.",
-                                                                              "Parsing Message..."]})
+                                                                              "Parsing Message..."],
+                                                                  "unique_id": this_id})
 
             # get email ID
             latest_email_uid = data[0].split()[-1]
@@ -135,10 +137,12 @@ def _get_next_email():
                                                                               "Parsing Message...",
                                                                               "",
                                                                               "Message Received From:",
-                                                                              received[0],
+                                                                              received[1][0] + " " + received[1][1],
                                                                               "",
                                                                               "Parsing Successful."],
-                                                                  "lifespan": 3})
+                                                                  "lifespan": 3},
+                                               unique_id=this_id)
+            print(set(data))
 
             return received
 

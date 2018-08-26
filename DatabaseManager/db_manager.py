@@ -14,17 +14,20 @@ def store_calendar_events(new_events):
     existing_events = get_file_data(events_file_path)
     time.sleep(1)
     ui.DisplayQueueManager.update_data("Adding Calendar Events", {"TextBox": ["Reading in known events...",
-                                                                              "Compiled "
+                                                                              "   Compiled "
                                                                               "(" + str(len(existing_events)) + ")",
-                                                                              "Adding new Events"]})
+                                                                              "Adding new Events..."]})
     file = open(events_file_path, "w")
 
-    for index in range(len(existing_events)):
-        existing_events[index] = existing_events[index].replace("\n", "")
-        file.write(str(existing_events[index]))
+    for index, event in enumerate(existing_events):
+        existing_events[index] = event.replace("\n", "")
+        file.write(str(event))
+    added_events = 0
     for event in new_events:
-        if event not in existing_events:
+        if str(event) not in existing_events:
             file.write(str(event) + "\n")
+            added_events += 1
+
     file.close()
     time.sleep(1)
 
@@ -33,7 +36,8 @@ def store_calendar_events(new_events):
                                                                               "   Compiled "
                                                                               "(" + str(len(existing_events)) + ")",
                                                                               "Adding new Events...",
-                                                                              "   New Events Added"],
+                                                                              "   New Events Added "
+                                                                              "(" + str(added_events) + ")"],
                                                                   "lifespan": 3})
 
 
