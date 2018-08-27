@@ -3,6 +3,16 @@ from UI import ui_manager as ui
 import time
 import os
 import re
+import datetime
+
+from ScheduleManager import schedule_manager
+
+
+def update_check(last_update):
+    if last_update == "" or datetime.datetime.now() > last_update + datetime.timedelta(minutes=15):
+        store_calendar_events(schedule_manager.build_events())
+        return datetime.datetime.now()
+    return last_update
 
 
 def store_calendar_events(new_events):

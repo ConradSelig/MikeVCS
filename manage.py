@@ -36,18 +36,17 @@ def setup():
 def main():
 
     test.test_display()
-    calendar_events = schedule_manager.build_events()
-    db_manager.store_calendar_events(calendar_events)
-
 
     running = True
     tick_count = 0
+    last_db_update = ""
 
     while running:
         tick_count += 1
         time.sleep(0.01)
 
         new_emails = email_manager.get_email_stack()
+        last_db_update = db_manager.update_check(last_db_update)
 
         # print(running)
     return
