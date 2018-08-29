@@ -4,9 +4,9 @@ from EmailManager import email_manager
 from ScheduleManager import schedule_manager
 from DatabaseManager import db_manager
 
+from datetime import datetime
 import time
 import logging
-import datetime
 import threading
 
 
@@ -46,7 +46,7 @@ def main():
         time.sleep(0.01)
 
         new_emails = email_manager.get_email_stack()
-        last_db_update = db_manager.update_check(last_db_update)
+        db_manager.update_db()
 
         # print(running)
     return

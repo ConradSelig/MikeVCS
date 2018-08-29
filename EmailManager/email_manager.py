@@ -1,6 +1,6 @@
 from UI import ui_manager as ui
 
-import datetime
+from datetime import datetime
 import imaplib
 import email
 import time
@@ -91,7 +91,7 @@ def _get_next_email():
         if data != [b'']:
 
             print("Adding Incoming Email Event")
-            this_id = str(datetime.datetime.now())
+            this_id = str(datetime.now())
             ui.DisplayQueueManager.request_connection(["Email"], {"color": ui.YELLOW,
                                                                   "title": "Incoming Email",
                                                                   "TextBox": ["New Email Detected.",

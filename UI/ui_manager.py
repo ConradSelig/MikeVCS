@@ -1,3 +1,4 @@
+from datetime import datetime
 import datetime as dt
 import logging
 import pygame
@@ -124,7 +125,7 @@ class QueueHandler:
                         # changed that data
                         connection[3][key] = new_dict[key]
                     # reset the connection time, this will only change how long the event is displayed if lifespan is edited.
-                    connection[3]["connection_time"] = dt.datetime.now()
+                    connection[3]["connection_time"] = datetime.now()
                 # only catches if bad dictionary data is given.
                 except KeyError:
                     return 1
@@ -200,11 +201,11 @@ class Event:
                     self.data["connection_time"]
                 # if there is not, set the connection_time to now
                 except KeyError:
-                    self.data["connection_time"] = dt.datetime.now()
+                    self.data["connection_time"] = datetime.now()
 
         # try to see if the lifespan of the event has completed
         try:
-            if self.data["connection_time"] + dt.timedelta(seconds=self.data["lifespan"]) < dt.datetime.now():
+            if self.data["connection_time"] + dt.timedelta(seconds=self.data["lifespan"]) < datetime.now():
                 # if it has, raise a TypeError so the event is closed
                 raise TypeError
         except KeyError:

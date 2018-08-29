@@ -1,26 +1,74 @@
+from ScheduleManager import schedule_manager
 from UI import ui_manager as ui
 
+from datetime import datetime
+import datetime as dt
 import time
 import os
 import re
-import datetime
 
-from ScheduleManager import schedule_manager
+from Robinhood import Robinhood
+
+LONG_UPDATE = datetime.now() - dt.timedelta(minutes=60)
+REG_UPDATE = datetime.now() - dt.timedelta(minutes=60)
+SHORT_UPDATE = datetime.now() - dt.timedelta(minutes=60)
+
+DATABASE_PATH = re.search("(.*)\\\\.*", os.path.realpath(__file__)).group(1) + "\\Database\\"
 
 
-def update_check(last_update):
-    if last_update == "" or datetime.datetime.now() > last_update + datetime.timedelta(minutes=15):
+def update_db():
+    global LONG_UPDATE
+    global REG_UPDATE
+    global SHORT_UPDATE
+    if LONG_UPDATE < datetime.now() or datetime.now() > LONG_UPDATE + dt.timedelta(minutes=60):
+        LONG_UPDATE = datetime.now()
+    if REG_UPDATE == "" or datetime.now() > REG_UPDATE + dt.timedelta(minutes=15):
         store_calendar_events(schedule_manager.build_events())
-        return datetime.datetime.now()
-    return last_update
+        REG_UPDATE = datetime.now()
+    if SHORT_UPDATE == "" or datetime.now() > SHORT_UPDATE + dt.timedelta(minutes=1):
+        update_stock_portfolio_record()
+        SHORT_UPDATE = datetime.now()
+
+
+def update_stock_portfolio_record():
+
+    file = open(DATABASE_PATH + "non_static\\stock_portfolio.txt", "r")
+    excising_data = file.readlines()
+    file.close()
+
+    this_id = str(datetime.now())
+
+    ui.DisplayQueueManager.request_connection(["Database"], {"title": "Updating Portfolio Record",
+                                                             "color": ui.YELLOW,
+                                                             "unique_id": this_id,
+                                                             "TextBox": ["Number of old records:",
+                                                                         "   " + str(len(excising_data)),
+                                                                         "",
+                                                                         "Adding new record..."]})
+
+    robin_trader = Robinhood()
+    robin_trader.login("ConradSelig", open(DATABASE_PATH + "static\\pass.txt", "r").read())
+    profile_data = robin_trader.portfolios()
+
+    file = open(DATABASE_PATH + "non_static\\stock_portfolio.txt", "a")
+    file.write(str(datetime.now()) + "; " + profile_data["equity"] + "\n")
+    file.close()
+
+    ui.DisplayQueueManager.update_data("Updating Portfolio Record", {"color": ui.GREEN,
+                                                                     "unique_id": this_id,
+                                                                     "TextBox": ["Number of old records:",
+                                                                                 "   " + str(len(excising_data)),
+                                                                                 "",
+                                                                                 "Adding new record...",
+                                                                                 "   Done"],
+                                                                     "lifespan": 3})
 
 
 def store_calendar_events(new_events):
     ui.DisplayQueueManager.request_connection(["Database"], {"title": "Adding Calendar Events",
                                                              "color": ui.YELLOW,
                                                              "TextBox": ["Reading in known events..."]})
-    events_file_path = re.search("(.*)\\\\.*", os.path.realpath(__file__)).group(1) + \
-                       "\Database\\non_static\\calendar_events.txt"
+    events_file_path = DATABASE_PATH + "non_static\\calendar_events.txt"
     existing_events = get_file_data(events_file_path)
     time.sleep(1)
     ui.DisplayQueueManager.update_data("Adding Calendar Events", {"TextBox": ["Reading in known events...",

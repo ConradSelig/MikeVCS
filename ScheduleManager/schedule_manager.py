@@ -2,7 +2,7 @@
 
 from __future__ import print_function
 
-import datetime
+from datetime import datetime
 import os
 
 import httplib2
@@ -39,7 +39,7 @@ def build_events():
     http = credentials.authorize(httplib2.Http())
     service = discovery.build('calendar', 'v3', http=http)
 
-    now = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
+    now = datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
     events_result = service.events().list(
         calendarId='primary', timeMin=now, singleEvents=True,
         orderBy='startTime').execute()
