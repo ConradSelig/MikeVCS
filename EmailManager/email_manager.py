@@ -92,8 +92,8 @@ def _get_next_email():
 
             print("Adding Incoming Email Event")
             this_id = str(datetime.now())
-            ui.DisplayQueueManager.request_connection(["Email"], {"color": ui.YELLOW,
-                                                                  "title": "Incoming Email",
+            ui.DisplayQueueManager.request_connection(["Email"], {"title": "Incoming Email",
+                                                                  "color": ui.YELLOW,
                                                                   "TextBox": ["New Email Detected.",
                                                                               "Parsing Message..."],
                                                                   "unique_id": this_id})

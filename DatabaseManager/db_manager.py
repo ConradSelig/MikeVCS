@@ -65,17 +65,17 @@ def update_stock_portfolio_record():
 
 
 def store_calendar_events(new_events):
-    ui.DisplayQueueManager.request_connection(["Database"], {"title": "Adding Calendar Events",
+    ui.DisplayQueueManager.request_connection(["Database"], {"title": "Updating Calendar",
                                                              "color": ui.YELLOW,
                                                              "TextBox": ["Reading in known events..."]})
-    events_file_path = DATABASE_PATH + "non_static\\calendar_events.txt"
-    existing_events = get_file_data(events_file_path)
+
+    existing_events = get_file_data("non_static\\calendar_events.txt")
     time.sleep(1)
-    ui.DisplayQueueManager.update_data("Adding Calendar Events", {"TextBox": ["Reading in known events...",
-                                                                              "   Compiled "
-                                                                              "(" + str(len(existing_events)) + ")",
-                                                                              "Adding new Events..."]})
-    file = open(events_file_path, "w")
+    ui.DisplayQueueManager.update_data("Updating Calendar", {"TextBox": ["Reading in known events...",
+                                                                "   Compiled "
+                                                                "(" + str(len(existing_events)) + ")",
+                                                                "Adding new Events..."]})
+    file = open(DATABASE_PATH + "non_static\\calendar_events.txt", "w")
 
     for index, event in enumerate(existing_events):
         existing_events[index] = event.replace("\n", "")
@@ -93,7 +93,7 @@ def store_calendar_events(new_events):
     file.close()
     time.sleep(1)
 
-    ui.DisplayQueueManager.update_data("Adding Calendar Events", {"color": ui.GREEN,
+    ui.DisplayQueueManager.update_data("Updating Calendar", {"color": ui.GREEN,
                                                                   "TextBox": ["Reading in known events...",
                                                                               "   Compiled "
                                                                               "(" + str(len(existing_events)) + ")",
@@ -112,6 +112,7 @@ def parse_calendar_event(event):
 
 
 def get_file_data(file_name, read_lines=True):
+    file_name = DATABASE_PATH + file_name
     file = open(file_name, "r")
     if read_lines:
         data = file.readlines()
@@ -119,3 +120,11 @@ def get_file_data(file_name, read_lines=True):
         data = file.read()
     file.close()
     return data
+
+
+def write_file_data(file_name, data, append=False):
+    file_name = DATABASE_PATH + file_name
+    file = open(file_name, "a" if append else "w")
+    file.write(data)
+    file.close()
+    return
