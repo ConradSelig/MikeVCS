@@ -72,9 +72,9 @@ def store_calendar_events(new_events):
     existing_events = get_file_data("non_static\\calendar_events.txt")
     time.sleep(1)
     ui.DisplayQueueManager.update_data("Updating Calendar", {"TextBox": ["Reading in known events...",
-                                                                "   Compiled "
-                                                                "(" + str(len(existing_events)) + ")",
-                                                                "Adding new Events..."]})
+                                                                         "   Compiled "
+                                                                         "(" + str(len(existing_events)) + ")",
+                                                                         "Adding new Events..."]})
     file = open(DATABASE_PATH + "non_static\\calendar_events.txt", "w")
 
     for index, event in enumerate(existing_events):
@@ -94,13 +94,13 @@ def store_calendar_events(new_events):
     time.sleep(1)
 
     ui.DisplayQueueManager.update_data("Updating Calendar", {"color": ui.GREEN,
-                                                                  "TextBox": ["Reading in known events...",
-                                                                              "   Compiled "
-                                                                              "(" + str(len(existing_events)) + ")",
-                                                                              "Adding new Events...",
-                                                                              "   New Events Added "
-                                                                              "(" + str(added_events) + ")"],
-                                                                  "lifespan": 3})
+                                                             "TextBox": ["Reading in known events...",
+                                                                         "   Compiled "
+                                                                         "(" + str(len(existing_events)) + ")",
+                                                                         "Adding new Events...",
+                                                                         "   New Events Added "
+                                                                         "(" + str(added_events) + ")"],
+                                                             "lifespan": 3})
 
 
 def parse_calendar_event(event):

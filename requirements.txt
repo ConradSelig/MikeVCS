@@ -3,3 +3,4 @@ git+git://github.com/ConradSelig/CSUtils@master
 oauth2client==4.1.2
 google-api-python-client==1.7.4
 Robinhood==1.0.1
+httplib2==0.11.3

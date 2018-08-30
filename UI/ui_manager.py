@@ -104,7 +104,7 @@ class QueueHandler:
                 for module in connection[0]:
                     setattr(self.nodes[module], "event", 0)
                     setattr(self.nodes[module], "column", 0)
-                # remove the connection from the existing connections list (this also deletes all the tracked event data)
+                # remove the connection from the existing connections list (this also deletes all tracked event data)
                 self.connections.remove(connection)
 
     # update the data of an event given the event name and any new or changed data
@@ -124,7 +124,7 @@ class QueueHandler:
                     for key in new_dict:
                         # changed that data
                         connection[3][key] = new_dict[key]
-                    # reset the connection time, this will only change how long the event is displayed if lifespan is edited.
+                    # reset the connection time, will only change how long the event is displayed if lifespan is edited.
                     connection[3]["connection_time"] = datetime.now()
                 # only catches if bad dictionary data is given.
                 except KeyError:
@@ -459,7 +459,8 @@ def main(display_state_object):
                         errors += event.draw()
                     except TypeError:
                         try:
-                            DisplayQueueManager.close_connection(getattr(event, "data")["title"], unique_id=getattr(event, "data")["unique_id"])
+                            DisplayQueueManager.close_connection(getattr(event, "data")["title"],
+                                                                 unique_id=getattr(event, "data")["unique_id"])
                         except KeyError:
                             DisplayQueueManager.close_connection(getattr(event, "data")["title"])
 
