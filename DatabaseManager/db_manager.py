@@ -9,9 +9,9 @@ import re
 
 from Robinhood import Robinhood
 
-LONG_UPDATE = datetime.now() - dt.timedelta(minutes=60)
-REG_UPDATE = datetime.now() - dt.timedelta(minutes=60)
-SHORT_UPDATE = datetime.now() - dt.timedelta(minutes=60)
+LONG_UPDATE = datetime.now() - dt.timedelta(minutes=100)
+REG_UPDATE = datetime.now() - dt.timedelta(minutes=100)
+SHORT_UPDATE = datetime.now() - dt.timedelta(minutes=100)
 
 DATABASE_PATH = re.search("(.*)\\\\.*", os.path.realpath(__file__)).group(1) + "\\Database\\"
 
@@ -20,14 +20,14 @@ def update_db():
     global LONG_UPDATE
     global REG_UPDATE
     global SHORT_UPDATE
-    if LONG_UPDATE < datetime.now() or datetime.now() > LONG_UPDATE + dt.timedelta(minutes=60):
+    if datetime.now() > LONG_UPDATE + dt.timedelta(minutes=60):
         LONG_UPDATE = datetime.now()
-    if REG_UPDATE == "" or datetime.now() > REG_UPDATE + dt.timedelta(minutes=15):
-        store_calendar_events(schedule_manager.build_events())
+    if datetime.now() > REG_UPDATE + dt.timedelta(minutes=15):
         REG_UPDATE = datetime.now()
-    if SHORT_UPDATE == "" or datetime.now() > SHORT_UPDATE + dt.timedelta(minutes=1):
-        update_stock_portfolio_record()
+        store_calendar_events(schedule_manager.build_events())
+    if datetime.now() > SHORT_UPDATE + dt.timedelta(minutes=1):
         SHORT_UPDATE = datetime.now()
+        update_stock_portfolio_record()
 
 
 def update_stock_portfolio_record():
@@ -79,7 +79,11 @@ def store_calendar_events(new_events):
 
     for index, event in enumerate(existing_events):
         existing_events[index] = event.replace("\n", "")
-        file.write(str(event))
+        event = parse_calendar_event(event)
+        datetime_string = event[0][0] + " " + event[0][1] + " " + event[0][2] + " " + event[1]
+        datetime_event = datetime.strptime(datetime_string, "%m %d %Y %H:%M")
+        if datetime_event > datetime.now():
+            file.write(str(event))
     added_events = 0
     for event in new_events:
         if str(event) not in existing_events:
@@ -97,6 +101,14 @@ def store_calendar_events(new_events):
                                                                               "   New Events Added "
                                                                               "(" + str(added_events) + ")"],
                                                                   "lifespan": 3})
+
+
+def parse_calendar_event(event):
+    date_re = re.search("^\[\['(..)', '(..)', '(....)']", event)
+    date = [date_re.group(1), date_re.group(2), date_re.group(3)]
+    time_name_re = re.search(".{24}(..:..)', '(..:..)', '(.*)']$", event)
+    event = [date, time_name_re.group(1), time_name_re.group(2), time_name_re.group(3)]
+    return event
 
 
 def get_file_data(file_name, read_lines=True):
