@@ -28,6 +28,7 @@ def build_portfolio_report():
 
     current_date = str(datetime.now().date()).split("-")
     report_data.append("Portfolio Report for: " + current_date[1] + "/" + current_date[2] + "/" + current_date[0])
+    report_data.append("Current Value: " + format(portfolio_data[-1][1], ".4f"))
     if days_change == 0:
         report_data.append("Portfolio's value did not change for the day")
     elif days_change > 0:
@@ -71,22 +72,6 @@ def build_portfolio_report():
                                                                        "Writing to Database...",
                                                                        "   Written."],
                                                            "lifespan": 3})
-
-    '''
-        Exception in thread Thread-1:
-        Traceback (most recent call last):
-          File "C:\ Users\Conrad Selig\AppData\Local\Programs\Python\Python36-32\lib\threading.py", line 916, in _bootstrap_inner
-            self.run()
-          File "C:\ Users\Conrad Selig\AppData\Local\Programs\Python\Python36-32\lib\threading.py", line 864, in run
-            self._target(*self._args, **self._kwargs)
-          File "C:/Users/Conrad Selig/PycharmProjects/MikeVCS/manage.py", line 50, in main
-            db_manager.update_db()
-          File "C:\ Users\Conrad Selig\PycharmProjects\MikeVCS\DatabaseManager\db_manager.py", line 27, in update_db
-            store_calendar_events(schedule_manager.build_events())
-          File "C:\ Users\Conrad Selig\PycharmProjects\MikeVCS\DatabaseManager\db_manager.py", line 86, in store_calendar_events
-            file.write(str(event))
-        MemoryError
-    '''
 
     return
 
@@ -144,11 +129,34 @@ def store_calendar_events(new_events):
         datetime_string = event[0][0] + " " + event[0][1] + " " + event[0][2] + " " + event[1]
         datetime_event = datetime.strptime(datetime_string, "%m %d %Y %H:%M")
         if datetime_event > datetime.now():
-            file.write(str(event))
+            try:
+                file.write(str(event))
+            except MemoryError:
+                ui.DisplayQueueManager.update_data("Updating Calendar", {"color": ui.RED,
+                                                                         "TextBox": ["Reading in known events...",
+                                                                                     "   Compiled "
+                                                                                     "(" + str(
+                                                                                         len(existing_events)) + ")",
+                                                                                     "Adding new Events...",
+                                                                                     "   FAILED (MemoryError)"],
+                                                                         "lifespan": 15})
+                return
+
     added_events = 0
     for event in new_events:
         if str(event) not in existing_events:
-            file.write(str(event) + "\n")
+            try:
+                file.write(str(event) + "\n")
+            except MemoryError:
+                ui.DisplayQueueManager.update_data("Updating Calendar", {"color": ui.RED,
+                                                                         "TextBox": ["Reading in known events...",
+                                                                                     "   Compiled "
+                                                                                     "(" + str(
+                                                                                         len(existing_events)) + ")",
+                                                                                     "Adding new Events...",
+                                                                                     "   FAILED (MemoryError)"],
+                                                                         "lifespan": 15})
+                return
             added_events += 1
 
     file.close()

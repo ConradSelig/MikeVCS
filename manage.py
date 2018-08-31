@@ -53,6 +53,10 @@ def main():
 
         new_emails = email_manager.get_email_stack()
         update_db()
+        db_manager.write_file_data("non_static\\timers.txt",
+                                   str(60 - (datetime.now() - SHORT_UPDATE).seconds) + "\n" +
+                                   str(900 - (datetime.now() - REG_UPDATE).seconds) + "\n" +
+                                   str(3600 - (datetime.now() - LONG_UPDATE).seconds))
 
         # print(running)
     return
@@ -89,7 +93,9 @@ def update_db():
 
     if datetime.now() > SHORT_UPDATE + dt.timedelta(minutes=1):
         SHORT_UPDATE = datetime.now()
-        if datetime.strptime("16:30", "%H:%M") > datetime.now() > datetime.strptime("07:30", "%H:%M"):
+        if datetime(datetime.now().year, datetime.now().month, datetime.now().day) + dt.timedelta(minutes=990) > \
+           datetime.now() > \
+           datetime(datetime.now().year, datetime.now().month, datetime.now().day) + dt.timedelta(minutes=450):
             db_manager.update_stock_portfolio_record()
 
 

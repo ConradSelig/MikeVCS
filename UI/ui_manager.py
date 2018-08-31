@@ -8,6 +8,8 @@ import os
 
 from CSUtils import Switch
 
+from DatabaseManager import db_manager
+
 
 # The interface for the rest of the program, its where connections are requested, changed, and closed.
 class QueueHandler:
@@ -463,6 +465,18 @@ def main(display_state_object):
                                                                  unique_id=getattr(event, "data")["unique_id"])
                         except KeyError:
                             DisplayQueueManager.close_connection(getattr(event, "data")["title"])
+
+            timers = db_manager.get_file_data("non_static\\timers.txt")
+
+            try:
+                text = TextFont.render("S: " + timers[0].replace("\n", ""), False, BLUE)
+                SCREEN.blit(text, (10, 10))
+                text = TextFont.render("M: " + timers[1].replace("\n", ""), False, BLUE)
+                SCREEN.blit(text, (10, 40))
+                text = TextFont.render("L: " + timers[2], False, BLUE)
+                SCREEN.blit(text, (10, 70))
+            except IndexError:
+                pass
 
             pygame.display.flip()
 

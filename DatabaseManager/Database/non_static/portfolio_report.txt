@@ -1,4 +1,5 @@
-Portfolio Report for: 08/30/2018
+Portfolio Report for: 08/31/2018
+Current Value: 49.6700
 Value Lost over day: $-0.9348
 Percent Decreased over day: -0.02%
 
@@ -6,20 +7,20 @@ Stocks Owned:
    Stock Name: TransEnterix, Inc.
    Stock Symbol: TRXC
       Number Owned: 2.0000
-      Value per Stock: 5.7100
-      Portfolio Value: 11.4200
+      Value per Stock: 5.7400
+      Portfolio Value: 11.4800
    Stock Name: Array BioPharma Inc. Common Stock
    Stock Symbol: ARRY
       Number Owned: 1.0000
-      Value per Stock: 15.4600
-      Portfolio Value: 15.4600
-   Stock Name: Nokia Corporation
-   Stock Symbol: NOK
-      Number Owned: 2.0000
-      Value per Stock: 5.6100
-      Portfolio Value: 11.2200
+      Value per Stock: 15.5100
+      Portfolio Value: 15.5100
    Stock Name: Zynerba Pharmaceuticals, Inc. Common Stock
    Stock Symbol: ZYNE
       Number Owned: 1.0000
-      Value per Stock: 8.0000
-      Portfolio Value: 8.0000
+      Value per Stock: 7.9300
+      Portfolio Value: 7.9300
+   Stock Name: AVEO Pharmaceuticals, Inc. Common Stock
+   Stock Symbol: AVEO
+      Number Owned: 4.0000
+      Value per Stock: 3.0100
+      Portfolio Value: 12.0400
