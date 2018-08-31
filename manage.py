@@ -2,6 +2,7 @@ from UI import ui_manager as ui
 from TestingSuite import test
 from EmailManager import email_manager
 from DatabaseManager import db_manager
+from Robinhood import Robinhood
 
 from math import floor, log10
 from datetime import datetime
@@ -90,6 +91,23 @@ def build_portfolio_report():
         report_data.append("Value Lost over day: $" + format(days_change, ".4f"))
         report_data.append("Percent Decreased over day: " +
                            str(round(days_percent_change, -int(floor(log10(abs(days_percent_change)))))) + "%")
+
+    robin_trader = Robinhood()
+    robin_trader.login("ConradSelig", open(db_manager.DATABASE_PATH + "static\\pass.txt", "r").read())
+
+    dsecowned = robin_trader.securities_owned()["results"]
+    report_data.append("\nStocks Owned: ")
+    for position in dsecowned:
+        id = position['instrument'].split('/')[4]
+        if float(position['quantity']) > 0:
+            report_data.append("   Stock Name: " + robin_trader.instrument(id)['name'])
+            report_data.append("   Stock Symbol: " + robin_trader.instrument(id)['symbol'])
+            num_owned = position['quantity']
+            report_data.append("      Number Owned: " + num_owned)
+            value_per = robin_trader.bid_price(robin_trader.instrument(id)['symbol'])[0][0]
+            report_data.append("      Value per Stock: " + value_per)
+            report_data.append("      Portfolio Value: " + format((float(num_owned) * float(value_per)), ".4f"))
+
     db_manager.write_file_data("non_static\\portfolio_report.txt", "\n".join(report_data))
 
     time.sleep(1)
@@ -100,6 +118,23 @@ def build_portfolio_report():
                                                                        "Writing to Database...",
                                                                        "   Written."],
                                                            "lifespan": 3})
+
+    '''
+        Exception in thread Thread-1:
+        Traceback (most recent call last):
+          File "C:\ Users\Conrad Selig\AppData\Local\Programs\Python\Python36-32\lib\threading.py", line 916, in _bootstrap_inner
+            self.run()
+          File "C:\ Users\Conrad Selig\AppData\Local\Programs\Python\Python36-32\lib\threading.py", line 864, in run
+            self._target(*self._args, **self._kwargs)
+          File "C:/Users/Conrad Selig/PycharmProjects/MikeVCS/manage.py", line 50, in main
+            db_manager.update_db()
+          File "C:\ Users\Conrad Selig\PycharmProjects\MikeVCS\DatabaseManager\db_manager.py", line 27, in update_db
+            store_calendar_events(schedule_manager.build_events())
+          File "C:\ Users\Conrad Selig\PycharmProjects\MikeVCS\DatabaseManager\db_manager.py", line 86, in store_calendar_events
+            file.write(str(event))
+        MemoryError
+    '''
+
     return
 
 
