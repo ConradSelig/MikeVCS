@@ -30,7 +30,7 @@ class DisplayState:
 CurrentDisplayState = DisplayState()
 
 LONG_UPDATE = datetime.now() - dt.timedelta(minutes=100)
-REG_UPDATE = datetime.now() - dt.timedelta(minutes=100)
+MID_UPDATE = datetime.now() - dt.timedelta(minutes=100)
 SHORT_UPDATE = datetime.now() - dt.timedelta(minutes=100)
 
 
@@ -55,7 +55,7 @@ def main():
         update_db()
         db_manager.write_file_data("non_static\\timers.txt",
                                    str(60 - (datetime.now() - SHORT_UPDATE).seconds) + "\n" +
-                                   str(900 - (datetime.now() - REG_UPDATE).seconds) + "\n" +
+                                   str(900 - (datetime.now() - MID_UPDATE).seconds) + "\n" +
                                    str(3600 - (datetime.now() - LONG_UPDATE).seconds))
 
         # print(running)
@@ -65,7 +65,7 @@ def main():
 def update_db():
 
     global LONG_UPDATE
-    global REG_UPDATE
+    global MID_UPDATE
     global SHORT_UPDATE
 
     trackers_data = ast.literal_eval(
@@ -76,26 +76,35 @@ def update_db():
         trackers_data["last_reset_date"] = str(datetime.now().date())
         db_manager.write_file_data("non_static\\trackers.txt", str(trackers_data))
 
-    if datetime.now() > datetime.strptime("10:00", "%H:%M"):
+    if datetime.now() > datetime.strptime("4:05", "%H:%M"):
         trackers_data = ast.literal_eval(
                         db_manager.get_file_data("non_static\\trackers.txt", read_lines=False).replace("\n", ""))
         if trackers_data["do_daily_report"]:
             db_manager.build_portfolio_report()
             trackers_data["do_daily_report"] = False
             db_manager.write_file_data("non_static\\trackers.txt", str(trackers_data))
+            email_manager.send_email({},
+                                     addr="conrad.selig@mines.sdsmt.edu",
+                                     subject="Stock Portfolio Report for " + str(datetime.now().date()),
+                                     body=db_manager.get_file_data("non_static\\portfolio_report.txt",
+                                                                   read_lines=False))
 
     if datetime.now() > LONG_UPDATE + dt.timedelta(minutes=60):
         LONG_UPDATE = datetime.now()
 
-    if datetime.now() > REG_UPDATE + dt.timedelta(minutes=15):
-        REG_UPDATE = datetime.now()
+    if datetime.now() > MID_UPDATE + dt.timedelta(minutes=15):
+        MID_UPDATE = datetime.now()
         db_manager.store_calendar_events(schedule_manager.build_events())
 
     if datetime.now() > SHORT_UPDATE + dt.timedelta(minutes=1):
         SHORT_UPDATE = datetime.now()
-        if datetime(datetime.now().year, datetime.now().month, datetime.now().day) + dt.timedelta(minutes=990) > \
+        # check for two conditions:
+        # current time is in stock market hours (7:00AM and 4:00PM)
+        # cuurent date is a weekday
+        if datetime(datetime.now().year, datetime.now().month, datetime.now().day) + dt.timedelta(minutes=960) > \
            datetime.now() > \
-           datetime(datetime.now().year, datetime.now().month, datetime.now().day) + dt.timedelta(minutes=450):
+           datetime(datetime.now().year, datetime.now().month, datetime.now().day) + dt.timedelta(minutes=420) and \
+           datetime.now().weekday() != 5 and datetime.now().weekday() != 6:
             db_manager.update_stock_portfolio_record()
 
 

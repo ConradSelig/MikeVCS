@@ -1,6 +1,10 @@
 from UI import ui_manager as ui
 
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from datetime import datetime
+
+import smtplib
 import imaplib
 import email
 import time
@@ -153,3 +157,80 @@ def _get_next_email():
     except KeyboardInterrupt:
         print("Keyboard Interrupt, program ending")
         exit()
+
+
+def send_email(email_data, addr="", subject="", body=""):
+
+    this_id = str(datetime.now())
+
+    ui.DisplayQueueManager.request_connection(["Email"], {"title": "Sending Email",
+                                                          "unique_id": this_id,
+                                                          "color": ui.YELLOW,
+                                                          "TextBox": ["Preparing message..."]})
+
+    fromaddr = "mike.adam.simon@gmail.com"
+    try:
+        addr = email_data["addr"]
+        subject = email_data["subject"]
+        body = email_data["body"]
+    except KeyError:
+        # a single missing key indicates that email_data is not being used.
+        # reset all variables to hand input.
+        addr = addr
+        subject = subject
+        body = body
+
+    # MIMEMultipart() object takes in easy input and builds a email friendly variable for sending
+    msg = MIMEMultipart()
+
+    # imputing data into msg
+    msg["From"] = fromaddr
+    msg["To"] = addr
+    msg["Subject"] = subject
+
+    # attach the body of the message as a MIMEText object for formatting reasons.
+    msg.attach(MIMEText(body, "plain"))
+
+    ui.DisplayQueueManager.update_data("Sending Email", {"unique_id": this_id,
+                                                         "TextBox": ["Preparing message...",
+                                                                     "   Built.",
+                                                                     "",
+                                                                     "Sending Message..."]})
+
+    # block to login to email service, if network error occurs and cannot login, wait one second and try again.
+    # Makes attempts for one minute.
+    for i in range(60):
+        try:
+            # logging in, stops loop if successful
+            server = smtplib.SMTP('smtp.gmail.com', 587)
+            server.starttls()
+            server.login(fromaddr, "8R.wreyK_+t?AL9z")
+            # adding email data (recall that msg is a MIME var)
+            text = msg.as_string()
+
+            # send it!
+            server.sendmail(fromaddr, addr, text)
+
+            # similar to .close() for a file, but signals to email server that all actions are complete
+            server.quit()
+            break
+        except (Exception, BaseException):
+            ui.DisplayQueueManager.update_data("Sending Email", {"unique_id": this_id,
+                                                                 "color": ui.RED,
+                                                                 "TextBox": ["Preparing message...",
+                                                                             "   Built.",
+                                                                             "",
+                                                                             "Sending Message...",
+                                                                             "   Connection Failure!",
+                                                                             "Retrying..."]
+                                                                 })
+            time.sleep(1)
+            continue
+    ui.DisplayQueueManager.update_data("Sending Email", {"unique_id": this_id,
+                                                         "color": ui.GREEN,
+                                                         "TextBox": ["Preparing message...",
+                                                                     "   Built.",
+                                                                     "",
+                                                                     "Sending Message...",
+                                                                     "   Sent"],
+                                                         "lifespan": 3})
