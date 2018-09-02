@@ -143,7 +143,8 @@ def _get_next_email():
                                                                               "Parsing Message...",
                                                                               "",
                                                                               "Message Received From:",
-                                                                              received["name"][0] + " " + received["name"][1],
+                                                                              received["name"][0] + " " +
+                                                                              received["name"][1],
                                                                               "",
                                                                               "Parsing Successful."],
                                                                   "lifespan": 3},

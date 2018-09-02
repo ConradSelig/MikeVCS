@@ -3,8 +3,10 @@ from TestingSuite import test
 from EmailManager import email_manager
 from DatabaseManager import db_manager
 from ScheduleManager import schedule_manager
+from AI import ai_manager
 
 from datetime import datetime
+from random import randint
 
 import datetime as dt
 import threading
@@ -58,12 +60,15 @@ def main():
                                    str(900 - (datetime.now() - MID_UPDATE).seconds) + "\n" +
                                    str(3600 - (datetime.now() - LONG_UPDATE).seconds))
 
-        if new_emails != []:
+        if new_emails:
             for new_email in new_emails:
+                header = ai_manager.get_header(new_email["name"])
+                signatures = db_manager.get_file_data("static\\signatures.txt", read_lines=True)
+                signature = "\n\n" + signatures[randint(0, len(signatures) - 1)] + "\tMike Mycroft"
                 email_manager.send_email({},
                                          addr="conrad.selig@mines.sdsmt.edu",
                                          subject="Re: " + new_email["subject"],
-                                         body="Your message was recieved.\nThank you!")
+                                         body=header + "\tYour message was received.\n\tThank you!" + signature)
     return
 
 
