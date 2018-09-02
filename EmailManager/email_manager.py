@@ -31,7 +31,7 @@ def get_email_stack():
 
 def _get_next_email():
 
-    received = []  # address, name, subject, body
+    received = {"addr": "", "name": "", "subject": "", "body": ""}  # address, name, subject, body
 
     # try surrounds until end of function, this is just a safety precaution to make sure
     # connections to servers to do cause errors when user stops program in the middle of
@@ -116,11 +116,12 @@ def _get_next_email():
             # todo: add message attachment saving
 
             # build received array, this will later turn into reply_data
-            received.append(email.utils.parseaddr(email_message["From"])[1])
-            received.append(email.utils.parseaddr(email_message["From"])[0].split(" "))
-            received.append(str(email.header.decode_header(email_message['Subject'])[0])[2:-8])
+            received["addr"] = (email.utils.parseaddr(email_message["From"])[1])
+            received["name"] = (email.utils.parseaddr(email_message["From"])[0].split(" "))
+            received["subject"] = (str(email.header.decode_header(email_message['Subject'])[0])[2:-8])
 
             # this is for after attachment is pulled off, also a redundant check is present just in case
+            ''' # Currently not supporting attachments.
             if email_message.is_multipart():
                 for part in email_message.walk():
                     ctype = part.get_content_type()
@@ -130,9 +131,10 @@ def _get_next_email():
                     if ctype == 'text/plain' and 'attachment' not in cdispo:
                         received.append(part.get_payload(decode=True))  # decode
                         break
+            '''
             # not multipart - i.e. plain text, no attachments, keeping fingers crossed
-            else:
-                received.append(email_message.get_payload(decode=True))
+            # else:
+            received["body"] = (email_message.get_payload(decode=True))
 
             time.sleep(2)
 
@@ -141,7 +143,7 @@ def _get_next_email():
                                                                               "Parsing Message...",
                                                                               "",
                                                                               "Message Received From:",
-                                                                              received[1][0] + " " + received[1][1],
+                                                                              received["name"][0] + " " + received["name"][1],
                                                                               "",
                                                                               "Parsing Successful."],
                                                                   "lifespan": 3},

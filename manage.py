@@ -58,7 +58,12 @@ def main():
                                    str(900 - (datetime.now() - MID_UPDATE).seconds) + "\n" +
                                    str(3600 - (datetime.now() - LONG_UPDATE).seconds))
 
-        # print(running)
+        if new_emails != []:
+            for new_email in new_emails:
+                email_manager.send_email({},
+                                         addr="conrad.selig@mines.sdsmt.edu",
+                                         subject="Re: " + new_email["subject"],
+                                         body="Your message was recieved.\nThank you!")
     return
 
 
@@ -76,7 +81,8 @@ def update_db():
         trackers_data["last_reset_date"] = str(datetime.now().date())
         db_manager.write_file_data("non_static\\trackers.txt", str(trackers_data))
 
-    if datetime.now() > datetime.strptime("4:05", "%H:%M"):
+    if datetime.now() > \
+       datetime(datetime.now().year, datetime.now().month, datetime.now().day) + dt.timedelta(minutes=965):
         trackers_data = ast.literal_eval(
                         db_manager.get_file_data("non_static\\trackers.txt", read_lines=False).replace("\n", ""))
         if trackers_data["do_daily_report"]:
@@ -100,7 +106,7 @@ def update_db():
         SHORT_UPDATE = datetime.now()
         # check for two conditions:
         # current time is in stock market hours (7:00AM and 4:00PM)
-        # cuurent date is a weekday
+        # current date is a weekday
         if datetime(datetime.now().year, datetime.now().month, datetime.now().day) + dt.timedelta(minutes=960) > \
            datetime.now() > \
            datetime(datetime.now().year, datetime.now().month, datetime.now().day) + dt.timedelta(minutes=420) and \
