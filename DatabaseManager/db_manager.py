@@ -197,3 +197,95 @@ def write_file_data(file_name, data, append=False):
     file.write(data)
     file.close()
     return
+
+
+def check_database():
+    ui.DisplayQueueManager.request_connection(["Database"], {"title": "Database Check",
+                                                             "color": ui.YELLOW,
+                                                             "TextBox": ["Looking for errors..."]})
+
+    metadata_files = os.listdir(DATABASE_PATH + "contact_metadata\\")
+    user_files = os.listdir(DATABASE_PATH + "user_data\\")
+    time.sleep(1)
+
+    ui.DisplayQueueManager.update_data("Database Check", {"TextBox": ["Looking for errors...",
+                                                                      "   " + str(len(metadata_files)) + " metadata.",
+                                                                      "   " + str(len(user_files)) + " users."],
+                                                          "color": ui.YELLOW if len(metadata_files) == len(user_files)
+                                                          else ui.RED})
+
+    time.sleep(0.5)
+
+    if len(metadata_files) != len(user_files):
+
+        ui.DisplayQueueManager.update_data("Database Check", {"TextBox": ["Looking for errors...",
+                                                                          "   " + str(
+                                                                              len(metadata_files)) + " metadata.",
+                                                                          "   " + str(len(user_files)) + " users.",
+                                                                          "Repairing..."]})
+
+        if len(metadata_files) < len(user_files):
+            for user_file in user_files:
+                if user_file not in metadata_files:
+                    os.mkdir(DATABASE_PATH + "contact_metadata\\" + user_file)
+                    open(DATABASE_PATH + "contact_metadata\\" + user_file + "\\metadata.txt", "w").close()
+        elif len(user_files) < len(metadata_files):
+            for metadata_file in user_files:
+                if metadata_file not in user_files:
+                    os.mkdir(DATABASE_PATH + "user_data\\" + metadata_file)
+                    open(DATABASE_PATH + "user_data\\" + metadata_file + "\\habits.txt", "w").close()
+                    open(DATABASE_PATH + "user_data\\" + metadata_file + "\\metadata.txt", "w").close()
+
+    metadata_files = os.listdir(DATABASE_PATH + "contact_metadata\\")
+    user_files = os.listdir(DATABASE_PATH + "user_data\\")
+    time.sleep(0.5)
+
+    ui.DisplayQueueManager.update_data("Database Check", {"TextBox": ["Looking for errors...",
+                                                                      "   " + str(len(metadata_files)) + " metadata.",
+                                                                      "   " + str(len(user_files)) + " users.",
+                                                                      "Checking for missing files..."],
+                                                          "color": ui.YELLOW if len(metadata_files) == len(user_files)
+                                                          else ui.RED})
+
+    file_errors = 0
+
+    for user_file in user_files:
+        try:
+            open(DATABASE_PATH + "user_data\\" + user_file + "\\habits.txt", "r").close()
+        except FileNotFoundError:
+            file_errors += 1
+            open(DATABASE_PATH + "user_data\\" + user_file + "\\habits.txt", "w").close()
+        try:
+            open(DATABASE_PATH + "user_data\\" + user_file + "\\metadata.txt", "r").close()
+        except FileNotFoundError:
+            file_errors += 1
+            open(DATABASE_PATH + "user_data\\" + user_file + "\\metadata.txt", "w").close()
+    for metadata_file in metadata_files:
+        try:
+            open(DATABASE_PATH + "contact_metadata\\" + metadata_file + "\\metadata.txt", "r").close()
+        except FileNotFoundError:
+            file_errors += 1
+            open(DATABASE_PATH + "user_data\\" + user_file + "\\metadata.txt", "w").close()
+    time.sleep(1)
+
+    ui.DisplayQueueManager.update_data("Database Check", {"TextBox": ["Looking for errors...",
+                                                                      "   " + str(len(metadata_files)) + " metadata.",
+                                                                      "   " + str(len(user_files)) + " users.",
+                                                                      "Checking for missing files...",
+                                                                      "   Complete",
+                                                                      "   (" + str(file_errors) + " repairs made)"],
+                                                          "color": ui.YELLOW})
+
+    time.sleep(1)
+    ui.DisplayQueueManager.update_data("Database Check", {"TextBox": ["Looking for errors...",
+                                                                      "   " + str(len(metadata_files)) + " metadata.",
+                                                                      "   " + str(len(user_files)) + " users.",
+                                                                      "Checking for missing files...",
+                                                                      "   Complete",
+                                                                      "   (" + str(file_errors) + " repairs made)",
+                                                                      "",
+                                                                      "Check complete!"],
+                                                          "color": ui.GREEN,
+                                                          "lifespan": 3})
+
+    return

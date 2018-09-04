@@ -102,6 +102,7 @@ def update_db():
 
     if datetime.now() > LONG_UPDATE + dt.timedelta(minutes=60):
         LONG_UPDATE = datetime.now()
+        db_manager.check_database()
 
     if datetime.now() > MID_UPDATE + dt.timedelta(minutes=15):
         MID_UPDATE = datetime.now()
