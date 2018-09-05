@@ -3,6 +3,7 @@ from UI import ui_manager as ui
 from math import floor, log10
 from datetime import datetime
 import time
+import ast
 import os
 import re
 
@@ -289,3 +290,22 @@ def check_database():
                                                           "lifespan": 3})
 
     return
+
+
+def get_contact_metadata(contact_name, tag=""):
+
+    for folder in os.listdir(DATABASE_PATH + "contact_metadata\\"):
+        if folder == contact_name[0].title() + "-" + contact_name[1].title():
+
+            file = open(DATABASE_PATH + "contact_metadata\\" + folder + "\\metadata.txt", "r")
+            data = file.read()
+            file.close()
+
+            data = ast.literal_eval(data)
+            if tag != "":
+                try:
+                    return data[tag]
+                except KeyError:
+                    return -1
+            return data
+    return -1

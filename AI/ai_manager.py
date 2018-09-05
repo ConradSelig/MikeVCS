@@ -1,6 +1,9 @@
+from DatabaseManager import db_manager
+
 import gender_guesser.detector as gender
 
 from random import randint
+import os
 
 
 def get_header(name):
@@ -13,10 +16,9 @@ def get_header(name):
     this_gender = gd.get_gender(name[0].title()).lower()
 
     # checking special cases
-    for i in range(len(special_cases)):
-        if name[0] == special_cases[i][0]:
-            this_gender = special_cases[i][1]
-            break
+    special_case = db_manager.get_contact_metadata(name, "gender")
+    if special_case != -1:
+        this_gender = special_case
 
     # picking male or female, if a-gender name, use "first name last name"
     if "female" in this_gender:

@@ -1,1 +1,1 @@
-{'do_daily_report': True, 'last_reset_date': '2018-09-04'}
+{'do_daily_report': True, 'last_reset_date': '2018-09-05'}
