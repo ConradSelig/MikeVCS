@@ -11,7 +11,10 @@ import time
 
 
 def get_email_stack():
-
+    """
+    collect a list containing one instance for each unprocessed email.
+    :return: list of dictionaries containing the unread emails, or None
+    """
     print("Getting email stack")
 
     # instantiating the list that will store the un-read emails
@@ -30,7 +33,10 @@ def get_email_stack():
 
 
 def _get_next_email():
-
+    """
+    Gets the next email from the inbox, private function - should only be used by get_email_stack()
+    :return: a single email dictionary, None if no new emails, 1 if an error occurred.
+    """
     received = {"addr": "", "name": "", "subject": "", "body": ""}  # address, name, subject, body
 
     # try surrounds until end of function, this is just a safety precaution to make sure
@@ -163,15 +169,28 @@ def _get_next_email():
 
 
 def send_email(email_data, addr="", subject="", body=""):
+    """
+    Collect required data for sending an email, and send the message. Uses email_data if all keys present, else uses
+    optional params
+    :param email_data: dict, should contain the following fields as keys:
+    :param addr: the address the email should be sent to
+    :param subject: the subject of the email
+    :param body: all of the text the email should contain
+    """
 
+    # custom ID for the UI.
     this_id = str(datetime.now())
 
+    #update the display
     ui.DisplayQueueManager.request_connection(["Email"], {"title": "Sending Email",
                                                           "unique_id": this_id,
                                                           "color": ui.YELLOW,
                                                           "TextBox": ["Preparing message..."]})
 
+    # fromaddr constant, every message is from Mike!
     fromaddr = "mike.adam.simon@gmail.com"
+
+    # try to set the variables from the email_data dictionary. If any key not present use optional params.
     try:
         addr = email_data["addr"]
         subject = email_data["subject"]
@@ -194,6 +213,7 @@ def send_email(email_data, addr="", subject="", body=""):
     # attach the body of the message as a MIMEText object for formatting reasons.
     msg.attach(MIMEText(body, "plain"))
 
+    # update the display
     ui.DisplayQueueManager.update_data("Sending Email", {"unique_id": this_id,
                                                          "TextBox": ["Preparing message...",
                                                                      "   Built.",
@@ -217,7 +237,10 @@ def send_email(email_data, addr="", subject="", body=""):
             # similar to .close() for a file, but signals to email server that all actions are complete
             server.quit()
             break
+
+        # did any error occur
         except (Exception, BaseException):
+            # update the display
             ui.DisplayQueueManager.update_data("Sending Email", {"unique_id": this_id,
                                                                  "color": ui.RED,
                                                                  "TextBox": ["Preparing message...",
@@ -227,8 +250,13 @@ def send_email(email_data, addr="", subject="", body=""):
                                                                              "   Connection Failure!",
                                                                              "Retrying..."]
                                                                  })
+            # wait for the display to catch up
             time.sleep(1)
+
+            # go back to start of loop, attempt to send the message again
             continue
+
+    # update the display now that the message is sent
     ui.DisplayQueueManager.update_data("Sending Email", {"unique_id": this_id,
                                                          "color": ui.GREEN,
                                                          "TextBox": ["Preparing message...",
