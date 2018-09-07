@@ -13,21 +13,36 @@ DATABASE_PATH = re.search("(.*)\\\\.*", os.path.realpath(__file__)).group(1) + "
 
 
 def build_portfolio_report():
+    """
+    Build a report of my stock portfolio, runs once a day at the end of market hours
+    :return: None
+    """
+
+    # id for the display
     this_id = str(datetime.now())
+    # update the display
     ui.DisplayQueueManager.request_connection(["Main", "Database"], {"title": "Stock Portfolio",
                                                                      "color": ui.YELLOW,
                                                                      "unique_id": this_id,
                                                                      "TextBox": ["Building end of day report..."]})
 
+    # get the file data for the minute reports
     portfolio_data = get_file_data("non_static\\stock_portfolio.txt")
+    # initialize the list that will eventually be joined into the report
     report_data = []
+    # for each line in the data
     for index, line in enumerate(portfolio_data):
+        # build it into a processable list
         portfolio_data[index] = portfolio_data[index].split("; ")
         portfolio_data[index][1] = float(portfolio_data[index][1].replace("\n", ""))
+    # calculate the net change over the day
     days_change = round(portfolio_data[-1][1] - portfolio_data[0][1], 4)
+    # calculate the percentage of that change
     days_percent_change = days_change / portfolio_data[0][1]
 
     current_date = str(datetime.now().date()).split("-")
+
+    # though next 12 lines, build the basic report values
     report_data.append("Portfolio Report for: " + current_date[1] + "/" + current_date[2] + "/" + current_date[0])
     report_data.append("Current Value: " + format(portfolio_data[-1][1], ".4f"))
     if days_change == 0:
@@ -41,12 +56,16 @@ def build_portfolio_report():
         report_data.append("Percent Decreased over day: " +
                            str(round(days_percent_change, -int(floor(log10(abs(days_percent_change)))))) + "%")
 
+    # login to robinhood
     robin_trader = Robinhood()
     robin_trader.login("ConradSelig", open(DATABASE_PATH + "static\\pass.txt", "r").read())
 
+    # collect the stocks owned from robinhood
     dsecowned = robin_trader.securities_owned()["results"]
     report_data.append("\nStocks Owned: ")
+    # for each stock owned
     for position in dsecowned:
+        # write the metadata for that report
         id = position['instrument'].split('/')[4]
         if float(position['quantity']) > 0:
             report_data.append("   Stock Name: " + robin_trader.instrument(id)['name'])
@@ -57,15 +76,20 @@ def build_portfolio_report():
             report_data.append("      Value per Stock: " + format(float(value_per), ".4f"))
             report_data.append("      Portfolio Value: " + format((float(num_owned) * float(value_per)), ".4f"))
 
+    # wait for the display to catch up
     time.sleep(1)
+    # update the display
     ui.DisplayQueueManager.update_data("Stock Portfolio", {"unique_id": this_id,
                                                            "TextBox": ["Building end of day report...",
                                                                        "   Built.",
                                                                        "Writing to Database..."]})
 
+    # write the report to the database
     write_file_data("non_static\\portfolio_report.txt", "\n".join(report_data))
 
+    # wait for the display to catch up
     time.sleep(1)
+    # update the display
     ui.DisplayQueueManager.update_data("Stock Portfolio", {"unique_id": this_id,
                                                            "color": ui.GREEN,
                                                            "TextBox": ["Building end of day report...",
@@ -78,13 +102,18 @@ def build_portfolio_report():
 
 
 def update_stock_portfolio_record():
-
+    """
+    Collects the current portfolio value and writes it to the database
+    :return: None
+    """
+    # open the known reports file and read the data. Reading the data for the display
     file = open(DATABASE_PATH + "non_static\\stock_portfolio.txt", "r")
     excising_data = file.readlines()
     file.close()
 
+    # id for the display
     this_id = str(datetime.now())
-
+    # update the display
     ui.DisplayQueueManager.request_connection(["Database"], {"title": "Updating Portfolio Record",
                                                              "color": ui.YELLOW,
                                                              "unique_id": this_id,
@@ -93,14 +122,17 @@ def update_stock_portfolio_record():
                                                                          "",
                                                                          "Adding new record..."]})
 
+    # login to robinhood
     robin_trader = Robinhood()
     robin_trader.login("ConradSelig", open(DATABASE_PATH + "static\\pass.txt", "r").read())
     profile_data = robin_trader.portfolios()
 
+    # open the database file and write the new record
     file = open(DATABASE_PATH + "non_static\\stock_portfolio.txt", "a")
     file.write(str(datetime.now()) + "; " + profile_data["equity"] + "\n")
     file.close()
 
+    # update the display
     ui.DisplayQueueManager.update_data("Updating Portfolio Record", {"color": ui.GREEN,
                                                                      "unique_id": this_id,
                                                                      "TextBox": ["Number of old records:",
@@ -110,67 +142,62 @@ def update_stock_portfolio_record():
                                                                                  "   Done"],
                                                                      "lifespan": 3})
 
+    return
+
 
 def store_calendar_events(new_events):
+    """
+    Take in the new events and write the events to the database
+    :param new_events: string of calendar events
+    :return: None
+    """
+    # update the display
     ui.DisplayQueueManager.request_connection(["Database"], {"title": "Updating Calendar",
                                                              "color": ui.YELLOW,
-                                                             "TextBox": ["Reading in known events..."]})
+                                                             "TextBox": ["Opening the database..."]})
 
-    existing_events = get_file_data("non_static\\calendar_events.txt")
+    # wait for the display to catch up
     time.sleep(1)
-    ui.DisplayQueueManager.update_data("Updating Calendar", {"TextBox": ["Reading in known events...",
-                                                                         "   Compiled "
-                                                                         "(" + str(len(existing_events)) + ")",
+    # update the display
+    ui.DisplayQueueManager.update_data("Updating Calendar", {"TextBox": ["Opening the database...",
+                                                                         "   Complete",
                                                                          "Adding new Events..."]})
+    # open the file for writing
     file = open(DATABASE_PATH + "non_static\\calendar_events.txt", "w")
 
-    for index, event in enumerate(existing_events):
-        existing_events[index] = event.replace("\n", "")
-        event = parse_calendar_event(event)
-        datetime_string = event[0][0] + " " + event[0][1] + " " + event[0][2] + " " + event[1]
-        datetime_event = datetime.strptime(datetime_string, "%m %d %Y %H:%M")
-        if datetime_event > datetime.now():
-            try:
-                file.write(str(event))
-            except MemoryError:
-                ui.DisplayQueueManager.update_data("Updating Calendar", {"color": ui.RED,
-                                                                         "TextBox": ["Reading in known events...",
-                                                                                     "   Compiled "
-                                                                                     "(" + str(
-                                                                                         len(existing_events)) + ")",
-                                                                                     "Adding new Events...",
-                                                                                     "   FAILED (MemoryError)"],
-                                                                         "lifespan": 15})
-                return
-
+    # count for the new events
     added_events = 0
+    # for each new event
     for event in new_events:
-        if str(event) not in existing_events:
-            try:
-                file.write(str(event) + "\n")
-            except MemoryError:
-                ui.DisplayQueueManager.update_data("Updating Calendar", {"color": ui.RED,
-                                                                         "TextBox": ["Reading in known events...",
-                                                                                     "   Compiled "
-                                                                                     "(" + str(
-                                                                                         len(existing_events)) + ")",
-                                                                                     "Adding new Events...",
-                                                                                     "   FAILED (MemoryError)"],
-                                                                         "lifespan": 15})
-                return
-            added_events += 1
+        # if that event is not a known event
+        try:
+            # write the event to the file
+            file.write(str(event) + "\n")
+        except MemoryError:
+            ui.DisplayQueueManager.update_data("Updating Calendar", {"color": ui.RED,
+                                                                     "TextBox": ["Opening the database...",
+                                                                                 "   Complete",
+                                                                                 "Adding new Events...",
+                                                                                 "   FAILED (MemoryError)"],
+                                                                     "lifespan": 15})
+            return
+        added_events += 1
 
+    # close the file
     file.close()
-    time.sleep(1)
 
+    # wait for the display to catch up
+    time.sleep(1)
+    # update the display
     ui.DisplayQueueManager.update_data("Updating Calendar", {"color": ui.GREEN,
-                                                             "TextBox": ["Reading in known events...",
-                                                                         "   Compiled "
-                                                                         "(" + str(len(existing_events)) + ")",
+                                                             "TextBox": ["Opening the database...",
+                                                                         "   Complete",
                                                                          "Adding new Events...",
-                                                                         "   New Events Added "
+                                                                         "   Events Added "
                                                                          "(" + str(added_events) + ")"],
                                                              "lifespan": 3})
+
+    return
 
 
 def parse_calendar_event(event):
