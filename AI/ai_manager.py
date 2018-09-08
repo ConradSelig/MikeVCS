@@ -3,16 +3,19 @@ from DatabaseManager import db_manager
 import gender_guesser.detector as gender
 
 from random import randint
-import os
 
 
 def get_header(name):
+    """
+    Builds a header for each email based off the gender of the person who sent the email
+    :param name: list ["first name", "last name"]
+    :return: string header
+    """
 
-    # list of cases where I know that the database does not match
-    special_cases = [["Laine", "male"]]
-
+    # building the gender detector object
     gd = gender.Detector()
 
+    # getting the gender from the detector
     this_gender = gd.get_gender(name[0].title()).lower()
 
     # checking special cases
