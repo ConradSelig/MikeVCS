@@ -11,8 +11,10 @@ from CSUtils import Switch
 from DatabaseManager import db_manager
 
 
-# The interface for the rest of the program, its where connections are requested, changed, and closed.
 class QueueHandler:
+    """
+    The interface for the rest of the program, its where connections are requested, changed, and closed.
+    """
     data_fields = []  # modules, nodes, events, wheel_center, midpoints
     connections = []  # list of tuples; ([modules], event, priority, event_data)
     queue = []  # list of tuples; ([modules])
@@ -133,8 +135,10 @@ class QueueHandler:
                     return 1
 
 
-# One of 6 modules (Main, Email, AI, Database, Habit, Display)
 class Module:
+    """
+    The interface for the rest of the program, its where connections are requested, changed, and closed.
+    """
     # the name of the module
     name = ""
     # the public key - is also the index of the module in almost every list
@@ -151,8 +155,10 @@ class Module:
         return str(self.public_key) + ": " + str(self.name)
 
 
-# One of 6 customizable events
 class Event:
+    """
+    One of 6 customizable events
+    """
     # the public key - is also the index of the event in almost every list
     public_key = 0
     # the location of the final node that connects the event
@@ -288,8 +294,10 @@ class Event:
         return 0
 
 
-# Individual nodes used for connecting modules to events
 class Node:
+    """
+    Individual nodes used for connecting modules to events
+    """
     # private key, only used for placement
     private_key = 0
     # its place in its nodeset path
@@ -306,8 +314,10 @@ class Node:
         return str(self.private_key) + ": " + str(self.path_index) + ". " + str(self.location)
 
 
-# A set of Nodes for easy interfacing.
 class NodeSet:
+    """
+    A set of Nodes for easy interfacing.
+    """
     # list of node objects in this set
     nodes = []
     column = 0  # 1 - 3
@@ -356,29 +366,42 @@ clock = pygame.time.Clock()
 TextFont = pygame.font.SysFont('Courant', 30)
 
 
-# Run once, sets the location for a the modules, nodes, and events
 def setup_display():
+    """
+    Run once, sets the location for a the modules, nodes, and events
+    :return: list modules (6), list nodes (48), list events (6), tuple wheel_center, list midpoints (18)
+    """
     modules = []
     nodes = []
     events = []
 
+    # based of the screen size
     wheel_center = (SIZE[0] / 7, Y_CENTER)
 
+    # for each module in list
     for index, module_name in enumerate(["Global Manager", "Email Connection", "Database Management",
                                          "Schedule Management", "Schedule Management", "AI Elements"]):
+        # create the module object
         modules.append(Module(module_name, index))
 
+    # for each module
     for mod_index in range(len(modules)):
         next_set = []
+        # each node_set is 8 nodes long
         for node_index in range(8):
+            # append blank nodes to node set
             next_set.append(Node(mod_index, node_index))
+        # append node set to nodes list
         nodes.append(NodeSet(next_set))
 
+    # midpoints are the final connectors from the node sets to the events
     midpoints = display_modules(wheel_center, 12.03, BLUE, calc_midpoints=True)
+    # setup_nodes() places all the nodes in their locations relative to the display size
     setup_nodes(modules, nodes, midpoints, wheel_center)
-    '''rotate node sets to index 0 is on top'''
+    # rotate node sets to index 0 is on top
     nodes = nodes[4:] + nodes[:4]
 
+    # these are used to put the events in place
     top = SIZE[1] / 3 + (SIZE[1] / 24)
     bottom = (SIZE[1] / 3) * 2 - (SIZE[1] / 24)
     left = SIZE[0] / 3 + ((SIZE[0] / 3) / 3)
@@ -386,6 +409,7 @@ def setup_display():
     center = SIZE[0] / 3 + (SIZE[0] / 3)
     width = right - left
 
+    # nodes being the event nodes
     node_locations = [(left, top),
                       (center, top),
                       (right, top),
@@ -393,12 +417,17 @@ def setup_display():
                       (center, bottom),
                       (right, bottom)]
     for index in range(6):
+        # create the event in its place
         events.append(Event(index + 1, node_locations[index], width))
 
-    ''' adds the additional 3 nodes required for event connection '''
+    # adds the additional 3 nodes required for event connection
+    # for each column of events
     for index in range(3):
+        # for each module
         for mod_index in range(len(modules)):
+            # offset modifier is the x value that is added to the node to place it in place
             offset_modifier = 0
+            # assign the offset_modifier based on the node index
             with Switch(mod_index) as case:
                 if case(0) or case(5):
                     offset_modifier = 90
@@ -406,12 +435,15 @@ def setup_display():
                     offset_modifier = 60
                 elif case(2) or case(3):
                     offset_modifier = 30
+                # set the location of the node
                 setattr(getattr(nodes[mod_index], "all nodes")[5 + index], "location",
                         (node_locations[index][0] - offset_modifier, getattr(nodes[mod_index][4], "location")[1]))
 
+    # window settings
     pygame.display.set_caption("Mike Diagnostics")
     pygame.display.set_icon(pygame.image.load("UI/tray_icon.jpg"))
 
+    # return the generated lists
     return modules, nodes, events, wheel_center, midpoints
 
 

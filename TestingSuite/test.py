@@ -5,7 +5,10 @@ import time
 
 
 def test_display():
-
+    """
+    Basic display test
+    :return: 0 if test did not fail
+    """
     ui.DisplayQueueManager.request_connection(["Main"], {"color": ui.YELLOW, "title": "Initializing Display"})
     time.sleep(1)
     ui.DisplayQueueManager.update_data("Initializing Display", {"TextBox": ["Display Objects Built"]})
