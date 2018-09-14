@@ -127,7 +127,7 @@ def _get_next_email():
             received["subject"] = (str(email.header.decode_header(email_message['Subject'])[0])[2:-8])
 
             # this is for after attachment is pulled off, also a redundant check is present just in case
-            ''' # Currently not supporting attachments.
+            # Currently not supporting attachments.
             if email_message.is_multipart():
                 for part in email_message.walk():
                     ctype = part.get_content_type()
@@ -135,12 +135,8 @@ def _get_next_email():
 
                     # skip any text/plain (txt) attachments
                     if ctype == 'text/plain' and 'attachment' not in cdispo:
-                        received.append(part.get_payload(decode=True))  # decode
+                        received["body"] = part.get_payload(decode=True).decode("utf-8")  # decode
                         break
-            '''
-            # not multipart - i.e. plain text, no attachments, keeping fingers crossed
-            # else:
-            received["body"] = (email_message.get_payload(decode=True))
 
             time.sleep(2)
 
@@ -155,7 +151,7 @@ def _get_next_email():
                                                                               "Parsing Successful."],
                                                                   "lifespan": 3},
                                                unique_id=this_id)
-            print(set(data))
+            print("Message Data:", received)
 
             return received
 

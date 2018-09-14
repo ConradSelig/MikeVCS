@@ -58,7 +58,15 @@ def build_portfolio_report():
 
     # login to robinhood
     robin_trader = Robinhood()
-    robin_trader.login("ConradSelig", open(DATABASE_PATH + "static\\pass.txt", "r").read())
+    try:
+        robin_trader.login("ConradSelig", open(DATABASE_PATH + "static\\pass.txt", "r").read())
+    except (Exception, BaseException):
+        # update the display
+        ui.DisplayQueueManager.update_data("Stock Portfolio", {"unique_id": this_id,
+                                                               "color": ui.RED,
+                                                               "TextBox": ["Building end of day report...",
+                                                                           "   CONNECTION FAILED"]})
+        return
 
     # collect the stocks owned from robinhood
     dsecowned = robin_trader.securities_owned()["results"]
@@ -124,7 +132,20 @@ def update_stock_portfolio_record():
 
     # login to robinhood
     robin_trader = Robinhood()
-    robin_trader.login("ConradSelig", open(DATABASE_PATH + "static\\pass.txt", "r").read())
+    try:
+        robin_trader.login("ConradSelig", open(DATABASE_PATH + "static\\pass.txt", "r").read())
+    except (Exception, BaseException):
+        # update the display
+        ui.DisplayQueueManager.update_data("Updating Portfolio Record", {"color": ui.RED,
+                                                                         "unique_id": this_id,
+                                                                         "TextBox": ["Number of old records:",
+                                                                                     "   " + str(len(excising_data)),
+                                                                                     "",
+                                                                                     "Adding new record...",
+                                                                                     "   LOGIN FAILED"],
+                                                                         "lifespan": 5})
+        return
+
     profile_data = robin_trader.portfolios()
 
     # open the database file and write the new record
@@ -413,7 +434,10 @@ def get_contact_metadata(contact_name, tag="") -> object:
             file.close()
 
             # turn the data into an actual dictionary type.
-            data = ast.literal_eval(data)
+            try:
+                data = ast.literal_eval(data)
+            except SyntaxError:
+                return -1
 
             # if a tag is provided
             if tag != "":

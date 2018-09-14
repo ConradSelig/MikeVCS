@@ -4,6 +4,8 @@ import gender_guesser.detector as gender
 
 from random import randint
 
+import os
+import re
 
 def get_header(name):
     """
@@ -46,3 +48,19 @@ def get_header(name):
             return "Dear " + name[0] + " " + name[1] + ",\n\n"
         else:
             return name[0] + " " + name[1] + ",\n\n"
+
+
+def parse_message(text):
+
+    if isinstance(text, bytes):
+        text = text.decode("utf-8")
+    if isinstance(text, str):
+        text = text.split("\n")
+
+    for index, line in enumerate(text):
+        if "database value" in line or "database file" in line:
+            files = os.listdir(db_manager.DATABASE_PATH + "non_static")
+            files += os.listdir(db_manager.DATABASE_PATH + "static")
+            print("\t", files)
+
+    return

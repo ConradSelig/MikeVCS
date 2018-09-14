@@ -86,6 +86,7 @@ def main():
                 header = ai_manager.get_header(new_email["name"])
                 signatures = db_manager.get_file_data("static\\signatures.txt", read_lines=True)
                 signature = "\n\n" + signatures[randint(0, len(signatures) - 1)] + "\tMike Mycroft"
+                ai_manager.parse_message(new_email["body"])
                 email_manager.send_email({},
                                          addr="conrad.selig@mines.sdsmt.edu",
                                          subject="Re: " + new_email["subject"],

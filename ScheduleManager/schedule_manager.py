@@ -69,8 +69,13 @@ def build_events():
                 date = event['start'].get('dateTime')[0:10]
                 start = event['start'].get('dateTime')[11:16]
                 end = event['end'].get('dateTime')[11:16]
+                location = event['location']
                 # parse into string
-                all_events.append(str(date) + "&&" + str(start) + "&&" + str(end) + "&&" + str(event['summary']) + "\n")
+                all_events.append(str(date) + "&&" +
+                                  str(start) + "&&" +
+                                  str(end) + "&&" +
+                                  str(event['summary']) + "&&" +
+                                  location + "\n")
         # if an error occurred due to google calendar syntax
         except (Exception, BaseException):
             continue
