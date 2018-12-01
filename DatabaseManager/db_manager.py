@@ -411,7 +411,7 @@ def check_database():
                                                                       "   Complete",
                                                                       "   (" + str(file_errors) + " repairs made)",
                                                                       "",
-                                                                      "Check complete!"],
+                                                                      "Check complete."],
                                                           "color": ui.GREEN,
                                                           "lifespan": 3})
 

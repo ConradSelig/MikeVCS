@@ -124,6 +124,10 @@ def _get_next_email():
             # build received array, this will later turn into reply_data
             received["addr"] = (email.utils.parseaddr(email_message["From"])[1])
             received["name"] = (email.utils.parseaddr(email_message["From"])[0].split(" "))
+            try:
+                received["name"][1]
+            except IndexError:
+                received["name"] = [received["name"][0], ""]
             received["subject"] = (str(email.header.decode_header(email_message['Subject'])[0])[2:-8])
 
             # this is for after attachment is pulled off, also a redundant check is present just in case
